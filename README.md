@@ -13,18 +13,21 @@ That matters here for one reason: GitHub Pages serves static files directly, so
 ```
 index.html          Home — hero, featured festival work, category cards
 festivals.html      Full festival gallery, filterable by event
-work.html           Portraits / weddings / food
+work.html           Clubs / portraits / weddings / food
 about.html          Bio + contact
 404.html            Not-found page
 
 assets/
   css/style.css     All styling. One file, sectioned and commented.
-  js/photos.js      ← THE ONLY FILE YOU NEED TO EDIT to add photos
-  js/site.js        Behaviour: masonry, lightbox, parallax, filters
-  img/              Your photographs go here
+  js/photos.js      The photos. Written by the editor; safe to hand-edit.
+  js/content.js     Every word on the site. Same deal.
+  js/site.js        Behaviour: masonry, lightbox, parallax, filters, text
+  img/              Your photographs — festivals, clubs, portraits,
+                    weddings, food, hero
 
 tools/
-  resize-photos.ps1 Shrinks photos for the web and writes your photos.js entries
+  editor.html       The visual editor. Start here.
+  resize-photos.ps1 Command-line alternative for bulk resizing
 ```
 
 ---
@@ -37,11 +40,14 @@ A visual editor for the site's content. Add photos by dropping them in, write
 captions, set which ones appear on the homepage, reorder them, change the hero
 image, edit the festival ticker. No code.
 
-1. Open the link, click **Choose site folder**, pick
-   `C:\Users\Kevin\Documents\kay-quan.github.io`. It remembers next time.
-2. Make your changes.
-3. Click **Save changes**.
-4. Open GitHub Desktop → Commit → Push.
+Four tabs:
+
+- **Photos** — drop photos in, write captions, choose which appear on the
+  homepage, reorder, delete. Categories fold shut when the list gets long.
+- **Homepage** — the hero image and the scrolling festival ticker.
+- **Text** — every word on the site, in labelled groups.
+- **Preview** — the real site rendered with your unpublished changes, at
+  desktop and phone widths. Look here before publishing.
 
 Dropping photos in does the resizing for you — same job as the PowerShell
 script below, including stripping EXIF so your camera's GPS location isn't
@@ -64,7 +70,14 @@ Edge (writing to local files is something Firefox and Safari can't do).
 1. Go to https://github.com/settings/personal-access-tokens/new
 2. **Expiration:** your choice — 90 days is a reasonable balance.
 3. **Repository access:** *Only select repositories* → `kay-quan.github.io`
+   Not *Public Repositories* — that option is read-only by design and can
+   never be given write access, however you set the permissions below it.
 4. **Permissions → Repository permissions → Contents:** *Read and write*
+   One entry out of a long alphabetical list. `Contents` sits near the top,
+   just under "Commit statuses". It is not "Repository security advisories",
+   which is further down and unrelated. Leave everything else on *No access*;
+   you don't need Pages or Workflows, because the site rebuilds itself once
+   the files land. *Metadata* turns itself on and greys out — that's normal.
 5. Generate, copy, and paste it into the editor's token box.
 
 That scoping matters. The token can only touch this one repository's files —
@@ -147,7 +160,8 @@ That will:
 - print ready-to-paste `photos.js` entries with the width and height already
   filled in
 
-`-Category` is one of `festivals`, `portraits`, `weddings`, `food`, `hero`.
+`-Category` is one of `festivals`, `clubs`, `portraits`, `weddings`, `food`,
+`hero`.
 For the hero image use a bigger long edge:
 
 ```powershell

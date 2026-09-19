@@ -211,8 +211,17 @@ ol.steps b{color:var(--text)}
         <li><b>Repository access:</b> choose <b>Only select repositories</b>, then
             pick <code>kay-quan.github.io</code>. This is what keeps the token
             harmless — it can't touch anything else you own.</li>
-        <li><b>Permissions → Repository permissions → Contents:</b> set to
-            <b>Read and write</b>. Leave everything else alone.</li>
+        <li><b>Permissions → Repository permissions.</b> This is a long
+            alphabetical list. You want exactly one entry from it:
+            <b>Contents</b> — set it to <b>Read and write</b>.
+            <br>It sits near the top, just below "Commit statuses", and is
+            described as "Repositories contents, commits, branches…".
+            Don't confuse it with "Repository security advisories" further
+            down, which is unrelated.
+            <br>Leave every other permission on <b>No access</b>. You don't
+            need Pages or Workflows — the site rebuilds by itself once the
+            files land. "Metadata" switches itself on and greys out; that's
+            normal.</li>
         <li>Click <b>Generate token</b>, copy it, paste it below.</li>
       </ol>
 
