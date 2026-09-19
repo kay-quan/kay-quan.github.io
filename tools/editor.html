@@ -93,6 +93,18 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
 .group-head[aria-expanded="false"] .count{color:var(--accent)}
 .group-body[hidden]{display:none}
 
+/* collapsible cards (Text tab) */
+.card-head{display:flex;align-items:center;gap:.6rem;width:100%;text-align:left;
+           font-size:.95rem;font-weight:700;color:var(--text);padding:0}
+.card-head:hover{color:var(--accent)}
+.card-head .chev{color:var(--accent);font-size:.75rem;display:inline-block;transition:transform .18s}
+.card-head[aria-expanded="false"] .chev{transform:rotate(-90deg)}
+.card-head .n{margin-left:auto;font-size:.68rem;font-weight:600;color:var(--dim);
+              background:var(--surface2);border-radius:999px;padding:.08rem .5rem}
+.card-body[hidden]{display:none}
+.card-body{margin-top:.95rem}
+.toolbar{display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap}
+
 .item{display:grid;grid-template-columns:76px 1fr auto;gap:.8rem;align-items:start;
       background:var(--surface);border:1px solid var(--line-soft);border-radius:9px;
       padding:.65rem;margin-bottom:.45rem}
@@ -1079,14 +1091,77 @@ function serializeContent(t) {
   return L.join("\n");
 }
 
+/* 63 fields at once is a wall. Start folded apart from the first group, which
+   holds the email address — the one edit that actually matters.
+
+   This runs once ever, tracked by its own flag. Inferring "first run" from
+   "no text groups are collapsed" would undo Expand all: that state is
+   indistinguishable from a fresh start, so the next render would fold
+   everything straight back up. */
+const LS_TEXT_SEEDED = "siteEditor.textSeeded";
+
+function seedTextCollapse() {
+  try { if (localStorage.getItem(LS_TEXT_SEEDED)) return; } catch { return; }
+  TEXT_GROUPS.slice(1).forEach(g => collapsed.add("text:" + g.title));
+  try {
+    localStorage.setItem(LS_COLLAPSED, JSON.stringify([...collapsed]));
+    localStorage.setItem(LS_TEXT_SEEDED, "1");
+  } catch {}
+}
+
+function setAllTextGroups(open) {
+  TEXT_GROUPS.forEach(g => {
+    if (open) collapsed.delete("text:" + g.title);
+    else collapsed.add("text:" + g.title);
+  });
+  try { localStorage.setItem(LS_COLLAPSED, JSON.stringify([...collapsed])); } catch {}
+  renderText();
+}
+
 function renderText() {
   const root = $("#textFields");
   root.innerHTML = "";
+  seedTextCollapse();
+
+  const bar = document.createElement("div");
+  bar.className = "toolbar";
+  const expandBtn = document.createElement("button");
+  expandBtn.className = "btn btn--sm"; expandBtn.textContent = "Expand all";
+  expandBtn.addEventListener("click", () => setAllTextGroups(true));
+  const collapseBtn = document.createElement("button");
+  collapseBtn.className = "btn btn--sm"; collapseBtn.textContent = "Collapse all";
+  collapseBtn.addEventListener("click", () => setAllTextGroups(false));
+  bar.append(expandBtn, collapseBtn);
+  root.appendChild(bar);
+
   TEXT_GROUPS.forEach(g => {
+    // Named groupKey, not key, so the per-field destructuring below can't
+    // shadow it.
+    const groupKey = "text:" + g.title;
+    const isOpen = !collapsed.has(groupKey);
+
     const card = document.createElement("div");
     card.className = "card";
-    card.innerHTML = "<h2>" + g.title + "</h2>" +
-                     (g.hint ? '<p class="hint">' + g.hint + "</p>" : "");
+
+    const head = document.createElement("button");
+    head.type = "button";
+    head.className = "card-head";
+    head.setAttribute("aria-expanded", String(isOpen));
+    head.innerHTML = '<span class="chev">▾</span>' + g.title +
+                     '<span class="n">' + g.fields.length + "</span>";
+
+    const body = document.createElement("div");
+    body.className = "card-body";
+    body.hidden = !isOpen;
+    head.addEventListener("click", () => toggleGroup(groupKey, head, body));
+
+    card.append(head, body);
+    if (g.hint) {
+      const hint = document.createElement("p");
+      hint.className = "hint";
+      hint.textContent = g.hint;
+      body.appendChild(hint);
+    }
 
     const pairs = g.fields.every(f => /Label$|Value$/.test(f[0]));
     let rowWrap = null;
@@ -1108,9 +1183,9 @@ function renderText() {
       if (pairs && i % 2 === 0) {
         rowWrap = document.createElement("div");
         rowWrap.className = "row";
-        card.appendChild(rowWrap);
+        body.appendChild(rowWrap);
       }
-      (pairs && rowWrap ? rowWrap : card).appendChild(lab);
+      (pairs && rowWrap ? rowWrap : body).appendChild(lab);
     });
 
     root.appendChild(card);
