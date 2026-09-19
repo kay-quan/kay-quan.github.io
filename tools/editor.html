@@ -105,6 +105,22 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
 .card-body{margin-top:.95rem}
 .toolbar{display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap}
 
+/* a category with nothing in it yet */
+.empty-cat{display:flex;align-items:center;gap:.9rem;flex-wrap:wrap;
+           border:1px dashed var(--line);border-radius:9px;padding:.85rem 1rem;
+           color:var(--faint);font-size:.85rem}
+.empty-cat .btn{margin-left:auto}
+
+/* brief nudge so it's obvious where the drop zone went */
+@keyframes dropPulse{
+  0%,100%{border-color:var(--line);background:transparent}
+  50%{border-color:var(--accent);background:rgba(255,95,61,.10)}
+}
+.drop.pulse{animation:dropPulse .9s ease-in-out 2}
+@media (prefers-reduced-motion: reduce){
+  .drop.pulse{animation:none;border-color:var(--accent);background:rgba(255,95,61,.10)}
+}
+
 .item{display:grid;grid-template-columns:76px 1fr auto;gap:.8rem;align-items:start;
       background:var(--surface);border:1px solid var(--line-soft);border-radius:9px;
       padding:.65rem;margin-bottom:.45rem}
@@ -840,14 +856,26 @@ function toggleGroup(cat, head, body) {
 
 function renderAll() { renderPhotos(); renderHero(); renderMarquee(); renderText(); }
 
+/* Point the "Add photos" controls at a category and take the eye there. */
+function startAddTo(cat) {
+  const sel = $("#addCategory");
+  sel.value = cat;
+  sel.dispatchEvent(new Event("change"));
+  const drop = $("#drop");
+  drop.scrollIntoView({ behavior: "smooth", block: "center" });
+  drop.classList.add("pulse");
+  setTimeout(() => drop.classList.remove("pulse"), 1800);
+}
+
 function renderPhotos() {
   const root = $("#photoList");
   root.innerHTML = "";
-  if (!data.photos.length) { root.innerHTML = '<p class="empty">No photos yet. Drop some in above.</p>'; return; }
 
+  // Every category is listed, including the empty ones. Hiding a category
+  // until it already has photos makes it impossible to find the place to put
+  // the first one — which is exactly the wrong way round.
   CATEGORIES.forEach(cat => {
     const set = data.photos.filter(p => p.category === cat);
-    if (!set.length) return;
     const g = document.createElement("div");
     g.className = "group";
 
@@ -865,6 +893,20 @@ function renderPhotos() {
     head.addEventListener("click", () => toggleGroup(cat, head, body));
 
     g.append(head, body);
+
+    if (!set.length) {
+      const blank = document.createElement("div");
+      blank.className = "empty-cat";
+      const msg = document.createElement("span");
+      msg.textContent = "Nothing in " + cat + " yet.";
+      const go = document.createElement("button");
+      go.type = "button";
+      go.className = "btn btn--sm";
+      go.textContent = "Add photos to " + cat;
+      go.addEventListener("click", () => startAddTo(cat));
+      blank.append(msg, go);
+      body.appendChild(blank);
+    }
 
     set.forEach(p => {
       const i = data.photos.indexOf(p);
