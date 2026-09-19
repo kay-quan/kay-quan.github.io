@@ -147,11 +147,26 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
   .drop.pulse{animation:none;border-color:var(--accent);background:rgba(255,95,61,.10)}
 }
 
-.item{display:grid;grid-template-columns:76px 1fr auto;gap:.8rem;align-items:start;
+.item{display:grid;grid-template-columns:auto 76px 1fr auto;gap:.8rem;align-items:start;
       background:var(--surface);border:1px solid var(--line-soft);border-radius:9px;
       padding:.65rem;margin-bottom:.45rem}
 .item.missing{border-color:rgba(255,197,61,.35)}
 .item.fresh{border-color:rgba(61,220,132,.4)}
+
+/* dragging photos */
+.tile-grip{align-self:center;cursor:grab;color:var(--faint);font-size:1.05rem;line-height:1;
+           padding:.35rem .15rem;user-select:none;transition:color .15s}
+.tile-grip:hover{color:var(--accent)}
+.tile-grip:active{cursor:grabbing}
+.item.dragging{opacity:.35}
+/* a line showing which side it will land on */
+.item.over-before{box-shadow:0 -2px 0 0 var(--accent)}
+.item.over-after{box-shadow:0 2px 0 0 var(--accent)}
+.group-body.over{outline:1px dashed var(--accent);outline-offset:4px;border-radius:9px}
+@media (max-width:640px){
+  .item{grid-template-columns:auto 60px 1fr}
+  .item .ctrls{grid-column:1 / -1;flex-direction:row;justify-content:flex-end;flex-wrap:wrap}
+}
 .thumb{width:76px;height:76px;border-radius:6px;object-fit:cover;background:var(--surface2);
        display:grid;place-content:center;font-size:.6rem;color:var(--faint);text-align:center;overflow:hidden}
 .thumb img{width:100%;height:100%;object-fit:cover}
@@ -1028,6 +1043,24 @@ function renderPhotos() {
     body.hidden = !isOpen;
     head.addEventListener("click", () => toggleGroup(cat, head, body));
 
+    /* The whole group is a drop target too, so a photo can be dragged into a
+       category that has nothing in it yet — there'd be no row to aim at. */
+    body.addEventListener("dragover", e => {
+      if (!dragSrcKey) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      body.classList.add("over");
+    });
+    body.addEventListener("dragleave", e => {
+      if (!body.contains(e.relatedTarget)) body.classList.remove("over");
+    });
+    body.addEventListener("drop", e => {
+      e.preventDefault();
+      const from = dragSrcKey || e.dataTransfer.getData("text/plain");
+      clearDragMarks();
+      dropPhotoOnCategory(from, cat);
+    });
+
     g.append(head, body);
 
     if (!set.length) {
@@ -1101,8 +1134,49 @@ function renderPhotos() {
         markDirty(); renderPhotos();
       });
 
+      /* Only the grip is draggable. Making the whole row draggable stops you
+         selecting text inside the caption fields, because the browser starts
+         a drag instead of a selection. */
+      const grip = document.createElement("span");
+      grip.className = "tile-grip";
+      grip.draggable = true;
+      grip.title = "Drag to reorder";
+      grip.setAttribute("aria-hidden", "true");
+      grip.textContent = "⠿";
+
+      grip.addEventListener("dragstart", e => {
+        dragSrcKey = p.src;
+        row.classList.add("dragging");
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", p.src);   // Firefox needs this
+        if (e.dataTransfer.setDragImage) e.dataTransfer.setDragImage(row, 30, 30);
+      });
+      grip.addEventListener("dragend", () => { dragSrcKey = null; clearDragMarks(); });
+
+      row.addEventListener("dragover", e => {
+        if (!dragSrcKey || dragSrcKey === p.src) return;
+        e.preventDefault();
+        e.stopPropagation();
+        e.dataTransfer.dropEffect = "move";
+        // Show which side it will land on, from the pointer's position.
+        const r = row.getBoundingClientRect();
+        const after = e.clientY > r.top + r.height / 2;
+        row.classList.toggle("over-after", after);
+        row.classList.toggle("over-before", !after);
+      });
+      row.addEventListener("dragleave", () => {
+        row.classList.remove("over-before", "over-after");
+      });
+      row.addEventListener("drop", e => {
+        e.preventDefault();
+        e.stopPropagation();
+        const from = dragSrcKey || e.dataTransfer.getData("text/plain");
+        clearDragMarks();
+        dropPhotoOnRow(from, p.src);
+      });
+
       ctrls.append(feat, up, dn, del);
-      row.append(thumb, fields, ctrls);
+      row.append(grip, thumb, fields, ctrls);
       body.appendChild(row);
       thumbFor(p.src, thumb);
     });
@@ -1116,6 +1190,52 @@ function move(i, dir) {
   const [x] = data.photos.splice(i, 1);
   data.photos.splice(j, 0, x);
   markDirty(); renderPhotos();
+}
+
+/* ---------------------------------------------------------------------------
+   Dragging photos.
+
+   Identified by src rather than by index: the array is spliced mid-operation,
+   so any index captured when the drag started is wrong by the time it drops.
+
+   Dropping onto a row in another category moves the photo into that category,
+   which is what dragging a picture into a different pile ought to mean.
+--------------------------------------------------------------------------- */
+
+let dragSrcKey = null;
+
+const photoIndex = src => data.photos.findIndex(p => p.src === src);
+
+function dropPhotoOnRow(fromSrc, targetSrc) {
+  if (!fromSrc || fromSrc === targetSrc) return;
+  const from = photoIndex(fromSrc), targetBefore = photoIndex(targetSrc);
+  if (from < 0 || targetBefore < 0) return;
+
+  const movingDown = from < targetBefore;
+  const [moved] = data.photos.splice(from, 1);
+  const target = data.photos[photoIndex(targetSrc)];
+
+  // Landing among a different category means joining it.
+  if (target && moved.category !== target.category) moved.category = target.category;
+
+  const at = photoIndex(targetSrc);
+  data.photos.splice(movingDown ? at + 1 : at, 0, moved);
+  markDirty(); renderPhotos();
+}
+
+function dropPhotoOnCategory(fromSrc, cat) {
+  if (!fromSrc) return;
+  const from = photoIndex(fromSrc);
+  if (from < 0) return;
+  const [moved] = data.photos.splice(from, 1);
+  moved.category = cat;
+  data.photos.push(moved);
+  markDirty(); renderPhotos();
+}
+
+function clearDragMarks() {
+  $$(".item").forEach(el => el.classList.remove("dragging", "over-before", "over-after"));
+  $$(".group-body").forEach(el => el.classList.remove("over"));
 }
 
 function renderHero() {
