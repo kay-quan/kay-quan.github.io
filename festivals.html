@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Festivals — Kevin Quan</title>
+<meta name="description" content="Festival and live music photography: main stages, crowds, pits and backstage.">
+<meta name="theme-color" content="#0a0a0c">
+
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="assets/css/style.css">
+<!-- If JavaScript is off, don't leave the page hidden behind the reveal animation -->
+<noscript><style>[data-reveal]{opacity:1 !important;transform:none !important}</style></noscript>
+</head>
+
+<body data-page="festivals">
+
+<div class="grain" aria-hidden="true"></div>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav is-stuck" id="nav">
+  <div class="nav__inner">
+    <a class="nav__brand" href="index.html">Kevin Quan<i>.</i></a>
+    <nav class="nav__links" aria-label="Main">
+      <a href="festivals.html" data-nav="festivals">Festivals</a>
+      <a href="work.html" data-nav="work">Other Work</a>
+      <a href="about.html" data-nav="about">About</a>
+      <a class="btn btn--sm btn--accent" href="about.html#contact">Book a shoot</a>
+    </nav>
+    <button class="nav__toggle" type="button" aria-label="Menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main id="main">
+
+  <section class="page-head">
+    <div class="wrap">
+      <span class="eyebrow eyebrow--accent">01 — Festivals</span>
+      <h1 class="display-xl">Festivals</h1>
+      <p class="lede">
+        Main stages, side tents, the pit and everything behind it. Filter by
+        event below, or click any frame to open it full screen.
+      </p>
+    </div>
+  </section>
+
+  <section class="section--tight" style="padding-top:0">
+    <div class="wrap">
+
+      <!-- Chips are generated from the `event` field in photos.js.
+           Add a new festival there and its filter appears here by itself. -->
+      <div class="filters" data-filters="festival-grid" data-filter-field="event">
+        <span class="filters__count"></span>
+      </div>
+
+      <div class="grid" id="festival-grid" data-grid="festivals"></div>
+
+    </div>
+  </section>
+
+  <section class="cta">
+    <div class="wrap wrap--narrow">
+      <span class="eyebrow eyebrow--accent">Bookings open</span>
+      <h2 class="display-lg" style="margin:1.25rem 0 1.5rem">Next season</h2>
+      <p class="lede">
+        Festival, tour date or press shoot — send the dates and I'll come back to you quickly.
+      </p>
+      <a class="mail-link" href="mailto:hello@example.com">hello@example.com</a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer__grid">
+      <div>
+        <p class="footer__brand">Kevin Quan<i>.</i></p>
+        <p class="muted" style="font-size:0.85rem">Festival &amp; live music photography</p>
+      </div>
+      <nav class="footer__nav" aria-label="Footer">
+        <a href="festivals.html">Festivals</a>
+        <a href="work.html">Other Work</a>
+        <a href="about.html">About</a>
+        <a href="about.html#contact">Contact</a>
+        <a href="https://instagram.com/" rel="me noopener" target="_blank">Instagram</a>
+      </nav>
+    </div>
+    <div class="footer__bottom">
+      <span>© <span data-year>2026</span> Kevin Quan. All rights reserved.</span>
+      <span>All photographs are my own work.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/photos.js"></script>
+<script src="assets/js/site.js"></script>
+</body>
+</html>

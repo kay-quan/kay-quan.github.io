@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kevin Quan — Festival &amp; Live Music Photographer</title>
+<meta name="description" content="Festival and live music photography. Main stages, crowds and backstage. Also portraits, weddings and food.">
+<meta name="theme-color" content="#0a0a0c">
+
+<!-- Social preview (what shows when the link is pasted into Instagram DMs,
+     WhatsApp, Slack, etc). These must be ABSOLUTE urls — relative paths are
+     ignored by every platform that renders link previews.
+     If you move to a custom domain later, change both urls below. -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://kay-quan.github.io/">
+<meta property="og:title" content="Kevin Quan — Festival Photographer">
+<meta property="og:description" content="Festival and live music photography.">
+<meta property="og:image" content="https://kay-quan.github.io/assets/img/hero/hero.jpg">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="assets/css/style.css">
+<!-- If JavaScript is off, don't leave the page hidden behind the reveal animation -->
+<noscript><style>[data-reveal]{opacity:1 !important;transform:none !important}</style></noscript>
+</head>
+
+<body data-page="home">
+
+<div class="grain" aria-hidden="true"></div>
+<a class="skip" href="#main">Skip to content</a>
+
+<!-- ===================== NAV ===================== -->
+<header class="nav" id="nav">
+  <div class="nav__inner">
+    <a class="nav__brand" href="index.html">Kevin Quan<i>.</i></a>
+
+    <nav class="nav__links" aria-label="Main">
+      <a href="festivals.html" data-nav="festivals">Festivals</a>
+      <a href="work.html" data-nav="work">Other Work</a>
+      <a href="about.html" data-nav="about">About</a>
+      <a class="btn btn--sm btn--accent" href="about.html#contact">Book a shoot</a>
+    </nav>
+
+    <button class="nav__toggle" type="button" aria-label="Menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ===================== HERO ===================== -->
+  <section class="hero">
+    <div class="hero__media" data-hero-media></div>
+
+    <div class="wrap hero__inner">
+      <p class="hero__kicker eyebrow eyebrow--accent">Festival &amp; live music photography</p>
+
+      <h1 class="display-xl hero__title">
+        <span class="line"><span>Kevin</span></span>
+        <span class="line"><span>Quan</span></span>
+      </h1>
+
+      <p class="hero__sub">
+        I shoot festivals — main stages, barricades, the ten minutes before
+        someone walks on. Portraits, weddings and food the rest of the year.
+      </p>
+
+      <div class="hero__actions">
+        <a class="btn btn--accent" href="festivals.html">See festival work <span aria-hidden="true">→</span></a>
+        <a class="btn" href="about.html#contact">Get in touch</a>
+      </div>
+    </div>
+
+    <span class="hero__cue eyebrow" aria-hidden="true">Scroll</span>
+  </section>
+
+  <!-- ===================== MARQUEE ===================== -->
+  <div class="marquee">
+    <div class="marquee__track" data-marquee></div>
+  </div>
+
+  <!-- ===================== FEATURED FESTIVAL WORK ===================== -->
+  <section class="section">
+    <div class="wrap">
+
+      <div class="section-head" data-reveal>
+        <div class="section-head__text">
+          <span class="eyebrow eyebrow--accent">Selected work</span>
+          <h2 class="display-lg">On the<br>Barricade</h2>
+        </div>
+        <a class="link-arrow" href="festivals.html">
+          All festival work <span aria-hidden="true">→</span>
+        </a>
+      </div>
+
+      <!-- Pulls every photo marked featured:true in photos.js -->
+      <div class="grid" data-grid="featured"></div>
+
+    </div>
+  </section>
+
+  <!-- ===================== OTHER WORK ===================== -->
+  <section class="section section--alt">
+    <div class="wrap">
+
+      <div class="section-head" data-reveal>
+        <div class="section-head__text">
+          <span class="eyebrow">Beyond the stage</span>
+          <h2 class="display-lg">The rest<br>of the year</h2>
+          <p class="lede" style="margin-top:1.25rem">
+            Festivals are seasonal. These aren't.
+          </p>
+        </div>
+        <a class="link-arrow" href="work.html">
+          Browse everything <span aria-hidden="true">→</span>
+        </a>
+      </div>
+
+      <div class="cards">
+        <a class="card" href="work.html#portraits" data-reveal style="--i:0">
+          <div class="card__media" data-card-media="portraits"></div>
+          <div class="card__body">
+            <h3 class="display-md">Portraits</h3>
+            <p>Studio and location. Musicians, and everyone else.</p>
+          </div>
+        </a>
+
+        <a class="card" href="work.html#weddings" data-reveal style="--i:1">
+          <div class="card__media" data-card-media="weddings"></div>
+          <div class="card__body">
+            <h3 class="display-md">Weddings</h3>
+            <p>Documentary-leaning. Few setups, a lot of watching.</p>
+          </div>
+        </a>
+
+        <a class="card" href="work.html#food" data-reveal style="--i:2">
+          <div class="card__media" data-card-media="food"></div>
+          <div class="card__body">
+            <h3 class="display-md">Food</h3>
+            <p>Menus, restaurants and the pass mid-service.</p>
+          </div>
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================== APPROACH ===================== -->
+  <section class="section">
+    <div class="wrap">
+      <div class="split split--sidebar">
+
+        <div data-reveal>
+          <span class="eyebrow eyebrow--accent">How I work</span>
+          <h2 class="display-lg" style="margin:1rem 0 1.75rem">Fast,<br>unlit,<br>close</h2>
+          <div class="prose">
+            <p>
+              Festival light changes every eight seconds and nobody is going to
+              wait for you. I shoot fast, I don't add light, and I get close
+              enough that the frame feels like the room felt.
+            </p>
+            <p>
+              Pit access, backstage, crowd, site — I cover the whole day, not
+              just the headliner. Galleries turn around quickly because a
+              festival photo is worth the most the morning after.
+            </p>
+          </div>
+        </div>
+
+        <div data-reveal style="--i:1">
+          <dl class="facts">
+            <div class="facts__row">
+              <dt>Based</dt>
+              <dd>Add your city here</dd>
+            </div>
+            <div class="facts__row">
+              <dt>Travel</dt>
+              <dd>Anywhere there's a stage</dd>
+            </div>
+            <div class="facts__row">
+              <dt>Turnaround</dt>
+              <dd>Same-night selects, full gallery in 72 hours</dd>
+            </div>
+            <div class="facts__row">
+              <dt>Covers</dt>
+              <dd>Festivals, tours, press, portraits, weddings, food</dd>
+            </div>
+            <div class="facts__row">
+              <dt>Clients</dt>
+              <dd>Add promoters, venues and publications here</dd>
+            </div>
+          </dl>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== CTA ===================== -->
+  <section class="cta">
+    <div class="wrap wrap--narrow">
+      <span class="eyebrow eyebrow--accent" data-reveal>Bookings open</span>
+      <h2 class="display-lg" style="margin:1.25rem 0 1.5rem; --i:1" data-reveal>
+        Shooting a festival?
+      </h2>
+      <p class="lede" data-reveal>
+        Send the dates and the lineup. I'll tell you straight away whether I'm free.
+      </p>
+      <!-- Change this address in all four pages when you pick your work email -->
+      <a class="mail-link" href="mailto:hello@example.com">hello@example.com</a>
+    </div>
+  </section>
+
+</main>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer__grid">
+      <div>
+        <p class="footer__brand">Kevin Quan<i>.</i></p>
+        <p class="muted" style="font-size:0.85rem">Festival &amp; live music photography</p>
+      </div>
+
+      <nav class="footer__nav" aria-label="Footer">
+        <a href="festivals.html">Festivals</a>
+        <a href="work.html">Other Work</a>
+        <a href="about.html">About</a>
+        <a href="about.html#contact">Contact</a>
+        <!-- Replace these with your real profiles, or delete them -->
+        <a href="https://instagram.com/" rel="me noopener" target="_blank">Instagram</a>
+      </nav>
+    </div>
+
+    <div class="footer__bottom">
+      <span>© <span data-year>2026</span> Kevin Quan. All rights reserved.</span>
+      <span>All photographs are my own work.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/photos.js"></script>
+<script src="assets/js/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+﻿# Windows / macOS junk
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+
+# Keep full-size originals out of the repo - resize into assets/img/ instead.
+# GitHub is not a photo backup.
+/originals/
+/exports/
+*.CR2
+*.CR3
+*.NEF
+*.ARW
+*.RAF
+*.dng
+*.psd
+*.xmp

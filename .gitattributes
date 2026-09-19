@@ -1,0 +1,25 @@
+# Normalise line endings for text files so the repo stays clean whether you
+# edit on Windows, a Mac, or in the GitHub web editor.
+* text=auto eol=lf
+
+# Windows-only scripts keep CRLF or PowerShell can complain.
+*.ps1 text eol=crlf
+
+# Photographs and other binaries: never convert line endings, never try to
+# diff them. Without this git can corrupt image files and produce enormous
+# useless diffs every time you add a photo.
+*.jpg  binary
+*.jpeg binary
+*.png  binary
+*.webp binary
+*.gif  binary
+*.avif binary
+*.ico  binary
+*.tif  binary
+*.tiff binary
+*.mp4  binary
+*.mov  binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.otf   binary
