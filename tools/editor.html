@@ -105,6 +105,20 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
 .card-body{margin-top:.95rem}
 .toolbar{display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap}
 
+/* category order widget */
+.order-list{display:flex;flex-direction:column;gap:.4rem}
+.order-item{display:flex;align-items:center;gap:.7rem;background:var(--bg);
+            border:1px solid var(--line);border-radius:8px;padding:.55rem .7rem;
+            cursor:grab;transition:border-color .15s,background .15s,opacity .15s}
+.order-item:hover{border-color:var(--dim)}
+.order-item.dragging{opacity:.4;cursor:grabbing}
+.order-item.over{border-color:var(--accent);background:rgba(255,95,61,.08)}
+.order-item .grip{color:var(--faint);font-size:.85rem;line-height:1}
+.order-name{font-weight:600;font-size:.9rem}
+.order-item .n{margin-left:auto;font-size:.68rem;color:var(--dim);
+               background:var(--surface2);border-radius:999px;padding:.08rem .5rem}
+.order-item .btn{flex:0 0 auto;padding:.28rem .45rem}
+
 /* editable label/value lists */
 .list-wrap{margin-bottom:.4rem}
 .list-label{display:block;font-size:.71rem;text-transform:uppercase;letter-spacing:.1em;
@@ -429,6 +443,16 @@ let data = { hero: { src: "", alt: "" }, photos: [], marquee: [] };
 let dirty = false;
 let textData = {};          // window.TEXT from content.js
 let showData = {};          // window.SHOW from content.js
+let orderData = [];         // window.ORDER - the non-festival categories, in display order
+
+/* Festivals always leads: it has its own page and is the point of the site.
+   The rest follow whatever order has been set, with any category missing
+   from that list appended so nothing can be lost. */
+function orderedCategories() {
+  const rest = CATEGORIES.filter(c => c !== "festivals");
+  const seen = orderData.filter(c => rest.includes(c));
+  return ["festivals", ...seen, ...rest.filter(c => !seen.includes(c))];
+}
 const thumbCache = new Map();     // src -> url
 const pendingImages = new Map();  // path -> Blob  (not yet written/committed)
 
@@ -500,7 +524,7 @@ function serialize(d) {
   L.push("};");
   L.push("");
   L.push("window.PHOTOS = [");
-  CATEGORIES.forEach(cat => {
+  orderedCategories().forEach(cat => {
     const set = d.photos.filter(p => p.category === cat);
     if (!set.length) return;
     L.push("");
@@ -869,6 +893,104 @@ function toggleGroup(cat, head, body) {
 
 function renderAll() { renderPhotos(); renderHero(); renderMarquee(); renderText(); }
 
+/* ========================= CATEGORY ORDER WIDGET =========================
+   Drag to reorder. Arrows do the same job for touch and keyboard, because
+   HTML5 drag-and-drop does not fire on touchscreens and cannot be operated
+   without a mouse — drag alone would lock out the phone this site is meant
+   to be edited from.
+   ========================================================================= */
+
+const CAT_LABEL = { clubs: "Clubs", portraits: "Portraits", weddings: "Weddings", food: "Food" };
+
+function commitOrder(next) {
+  orderData = next;
+  markDirty();
+  renderPhotos();
+}
+
+function buildOrderCard() {
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML =
+    "<h2>Order of the other categories</h2>" +
+    '<p class="hint">Drag to rearrange, or use the arrows. This sets the order ' +
+    "on the Other Work page, the homepage cards and the list below. " +
+    "Festivals always leads — it has its own page.</p>";
+
+  const list = document.createElement("div");
+  list.className = "order-list";
+
+  const cats = orderedCategories().filter(c => c !== "festivals");
+  let dragKey = null;
+
+  cats.forEach((cat, i) => {
+    const row = document.createElement("div");
+    row.className = "order-item";
+    row.draggable = true;
+    row.dataset.key = cat;
+
+    const grip = document.createElement("span");
+    grip.className = "grip";
+    grip.textContent = "☰";
+    grip.setAttribute("aria-hidden", "true");
+
+    const name = document.createElement("span");
+    name.className = "order-name";
+    name.textContent = CAT_LABEL[cat] || cat;
+
+    const count = document.createElement("span");
+    count.className = "n";
+    count.textContent = data.photos.filter(p => p.category === cat).length;
+
+    const up = document.createElement("button");
+    up.type = "button"; up.className = "btn btn--sm"; up.textContent = "↑";
+    up.title = "Move up"; up.disabled = i === 0;
+    up.addEventListener("click", () => {
+      const n = cats.slice(); n.splice(i - 1, 0, n.splice(i, 1)[0]); commitOrder(n);
+    });
+
+    const dn = document.createElement("button");
+    dn.type = "button"; dn.className = "btn btn--sm"; dn.textContent = "↓";
+    dn.title = "Move down"; dn.disabled = i === cats.length - 1;
+    dn.addEventListener("click", () => {
+      const n = cats.slice(); n.splice(i + 1, 0, n.splice(i, 1)[0]); commitOrder(n);
+    });
+
+    row.addEventListener("dragstart", e => {
+      dragKey = cat;
+      row.classList.add("dragging");
+      e.dataTransfer.effectAllowed = "move";
+      // Firefox refuses to start a drag unless something is set.
+      e.dataTransfer.setData("text/plain", cat);
+    });
+    row.addEventListener("dragend", () => {
+      dragKey = null;
+      $$(".order-item", list).forEach(el => el.classList.remove("dragging", "over"));
+    });
+    row.addEventListener("dragover", e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      if (dragKey && dragKey !== cat) row.classList.add("over");
+    });
+    row.addEventListener("dragleave", () => row.classList.remove("over"));
+    row.addEventListener("drop", e => {
+      e.preventDefault();
+      row.classList.remove("over");
+      const from = dragKey || e.dataTransfer.getData("text/plain");
+      if (!from || from === cat) return;
+      const n = cats.slice();
+      n.splice(n.indexOf(cat), 0, n.splice(n.indexOf(from), 1)[0]);
+      commitOrder(n);
+    });
+
+    row.append(grip, name, count, up, dn);
+    list.appendChild(row);
+  });
+
+  card.appendChild(list);
+  return card;
+}
+
 /* Point the "Add photos" controls at a category and take the eye there. */
 function startAddTo(cat) {
   const sel = $("#addCategory");
@@ -883,11 +1005,12 @@ function startAddTo(cat) {
 function renderPhotos() {
   const root = $("#photoList");
   root.innerHTML = "";
+  root.appendChild(buildOrderCard());
 
   // Every category is listed, including the empty ones. Hiding a category
   // until it already has photos makes it impossible to find the place to put
   // the first one — which is exactly the wrong way round.
-  CATEGORIES.forEach(cat => {
+  orderedCategories().forEach(cat => {
     const set = data.photos.filter(p => p.category === cat);
     const g = document.createElement("div");
     g.className = "group";
@@ -1117,6 +1240,8 @@ function parseContentJs(code) {
   new Function("window", code + "\n;")(stub);
   const text = stub.TEXT || {};
   showData = stub.SHOW || {};
+  orderData = Array.isArray(stub.ORDER) ? stub.ORDER.slice()
+                                        : CATEGORIES.filter(c => c !== "festivals");
   migrateFactLists(text);
   return text;
 }
@@ -1174,6 +1299,14 @@ function serializeContent(t) {
   const last = L.length - 1;
   if (L[last].endsWith(",")) L[last] = L[last].slice(0, -1);
   L.push("};");
+  L.push("");
+  L.push("/* --------------------------------------------------------------------------");
+  L.push("   CATEGORY ORDER");
+  L.push("");
+  L.push("   The order the non-festival categories appear in, on the Other Work page,");
+  L.push("   the homepage cards and in the editor. Festivals always leads.");
+  L.push("   -------------------------------------------------------------------------- */");
+  L.push("window.ORDER = " + JSON.stringify(orderData.filter(c => c !== "festivals")) + ";");
   L.push("");
   L.push("/* --------------------------------------------------------------------------");
   L.push("   WHAT APPEARS ON THE SITE");
@@ -1456,7 +1589,8 @@ function draftDataScript() {
          "window.PHOTOS=" + safeJSON(photos) + ";" +
          "window.MARQUEE=" + safeJSON(data.marquee) + ";" +
          "window.TEXT=" + safeJSON(textData) + ";" +
-         "window.SHOW=" + safeJSON(showData) + ";";
+         "window.SHOW=" + safeJSON(showData) + ";" +
+         "window.ORDER=" + safeJSON(orderData.filter(c => c !== "festivals")) + ";";
 }
 
 async function getShell(page) {

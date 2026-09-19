@@ -102,6 +102,17 @@ window.TEXT = {
    Anything not listed here is always shown, so leaving a key out is safe.
    Edit these in the editor under Text -> What appears on the site.
 ---------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   CATEGORY ORDER
+
+   The order the non-festival categories appear in: the Other Work page, the
+   homepage cards, and the editor's own list. Drag them in the editor's Photos
+   tab, or just rewrite this line.
+
+   Festivals isn't here — it has its own page and always leads.
+---------------------------------------------------------------------------- */
+window.ORDER = ["clubs", "portraits", "weddings", "food"];
+
 window.SHOW = {
   marquee:       true,   // scrolling festival names on the homepage
   approach:      true,   // the "How I work" block

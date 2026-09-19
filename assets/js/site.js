@@ -162,8 +162,70 @@
     });
   }
 
+  /* ======================================================================
+     ORDER  —  rearrange category blocks to match window.ORDER
+
+     A container marked data-order holds children marked data-order-key.
+     They're moved into the listed order, ahead of whatever followed the
+     last of them, so anything after the group (a closing call-to-action,
+     say) stays put.
+     ====================================================================== */
+
+  function applyOrder() {
+    var order = window.ORDER;
+    if (!Array.isArray(order) || !order.length) return;
+
+    $$("[data-order]").forEach(function (container) {
+      /* Direct children only. The jump chips carry the same keys as the
+         sections and sit inside <main> too, so a descendant search would
+         scoop them up here and try to move them out of their own nav. */
+      var items = Array.prototype.filter.call(container.children, function (el) {
+        return el.hasAttribute("data-order-key");
+      });
+      if (items.length < 2) return;
+
+      var byKey = {};
+      items.forEach(function (el) { byKey[el.dataset.orderKey] = el; });
+
+      // Captured before anything moves, or it shifts under us.
+      var anchor = items[items.length - 1].nextSibling;
+
+      order.forEach(function (key) {
+        if (byKey[key]) container.insertBefore(byKey[key], anchor);
+      });
+
+      // Anything not named in the order keeps its place at the end.
+      items.forEach(function (el) {
+        if (order.indexOf(el.dataset.orderKey) === -1) container.insertBefore(el, anchor);
+      });
+
+      if (container.dataset.order !== "stripe") return;
+
+      /* Alternating backgrounds, the tighter leading section and the
+         "Section 01" labels were all correct for the original order and are
+         nonsense after a shuffle. Redo them from the order that's now on the
+         page — which excludes anything visibility already removed. */
+      var moved = Array.prototype.filter.call(container.children, function (el) {
+        return el.hasAttribute("data-order-key");
+      });
+      moved.forEach(function (el, i) {
+        var first = i === 0;
+        el.classList.toggle("section--alt", i % 2 === 1);
+        // The leading section butts against the page header, so it drops its
+        // top padding; the others keep normal spacing.
+        el.classList.toggle("section--tight", first);
+        el.classList.toggle("section", !first);
+        el.style.paddingTop = first ? "0px" : "";
+
+        var num = el.querySelector("[data-order-num]");
+        if (num) num.textContent = "Section " + (i + 1 < 10 ? "0" : "") + (i + 1);
+      });
+    });
+  }
+
   applyText();
   applyVisibility();
+  applyOrder();
 
   /* ======================================================================
      NAV
