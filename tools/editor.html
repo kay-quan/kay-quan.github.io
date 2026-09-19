@@ -158,6 +158,16 @@ ol.steps b{color:var(--text)}
       <p class="hint">This works from any device, including your phone. Changes
          commit straight to GitHub and the site updates within a minute.</p>
 
+      <p class="note warn" id="fileWarn" hidden>
+        <b>This page was opened from a file on your computer, so remote editing
+        can't work here.</b> Browsers block local files from talking to GitHub.
+        Use the published address instead:<br>
+        <a href="https://kay-quan.github.io/tools/editor.html">https://kay-quan.github.io/tools/editor.html</a><br>
+        If that link 404s, the editor hasn't been pushed yet — open GitHub
+        Desktop and click <b>Push origin</b>. Or switch to
+        <b>This computer</b> above, which works fine from a local file.
+      </p>
+
       <p class="note"><b>Never paste this token into a chat, email or message —
          not even to me.</b> It goes in the box below and nowhere else. It's kept
          in this browser only, and "Sign out" erases it.</p>
@@ -394,16 +404,29 @@ function GitHubBackend(repo, token) {
   const branch = "main";
 
   async function api(path, method, body) {
-    const res = await fetch(API + path, {
-      method: method || "GET",
-      headers: {
-        "Authorization": "Bearer " + token,
-        "Accept": "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28",
-        ...(body ? { "Content-Type": "application/json" } : {})
-      },
-      body: body ? JSON.stringify(body) : undefined
-    });
+    let res;
+    try {
+      res = await fetch(API + path, {
+        method: method || "GET",
+        headers: {
+          "Authorization": "Bearer " + token,
+          "Accept": "application/vnd.github+json",
+          "X-GitHub-Api-Version": "2022-11-28",
+          ...(body ? { "Content-Type": "application/json" } : {})
+        },
+        body: body ? JSON.stringify(body) : undefined
+      });
+    } catch (e) {
+      // fetch() only rejects for network/CORS failures, never for HTTP errors.
+      // Opening this file directly from disk is by far the most common cause.
+      throw new Error(
+        location.protocol === "file:"
+          ? "Can't reach GitHub because this page was opened from a file on your " +
+            "computer. Remote editing needs the published address: " +
+            "https://kay-quan.github.io/tools/editor.html"
+          : "Couldn't reach GitHub. Check your internet connection and try again."
+      );
+    }
     if (!res.ok) {
       let detail = "";
       try { detail = (await res.json()).message || ""; } catch {}
@@ -423,9 +446,13 @@ function GitHubBackend(repo, token) {
     label: owner + "/" + name,
 
     async verify() {
-      const user = await api("/user");
-      await api("/repos/" + owner + "/" + name);   // proves scope covers this repo
-      return user.login;
+      // Repo access is the check that actually matters. Do it first, and make
+      // it the thing that reports failure.
+      await api("/repos/" + owner + "/" + name);
+      // /user is only for the friendly "signed in as" label. A token scoped
+      // narrowly enough may not be allowed to call it, which must not block
+      // sign-in.
+      try { return (await api("/user")).login; } catch { return owner; }
     },
 
     async loadText(path) {
@@ -859,6 +886,13 @@ function applyMode(m) {
     $("#unsupported").hidden = true;
     $("#gate").hidden = false;
     $("#repoInput").value = localStorage.getItem(LS_REPO) || "kay-quan/kay-quan.github.io";
+
+    // Opened straight off the disk? Remote mode cannot work — say so up front
+    // rather than letting the sign-in fail with a vague message.
+    const off = location.protocol === "file:";
+    $("#fileWarn").hidden = !off;
+    $("#signInBtn").disabled = off;
+    $("#tokenInput").disabled = off;
   } else {
     $("#gate").hidden = true;
     $("#signOutBtn").hidden = true;
