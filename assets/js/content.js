@@ -92,6 +92,14 @@ window.TEXT = {
 };
 
 /* --------------------------------------------------------------------------
+   CATEGORY ORDER
+
+   The order the non-festival categories appear in, on the Other Work page,
+   the homepage cards and in the editor. Festivals always leads.
+   -------------------------------------------------------------------------- */
+window.ORDER = ["clubs","portraits","weddings","food"];
+
+/* --------------------------------------------------------------------------
    WHAT APPEARS ON THE SITE
 
    false removes that block from the page. Anything not listed is shown,

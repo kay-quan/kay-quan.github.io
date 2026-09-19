@@ -34,16 +34,16 @@ window.PHOTOS = [
   { src: "assets/img/festivals/wide-01.jpg", w: 3000, h: 1500, title: "Site wide, blue hour", event: "Field Day 2024", category: "festivals" },
 
   /* --- CLUBS --- */
-  { src: "assets/img/clubs/kq107465.jpg", w: 2400, h: 1800, title: "", category: "clubs" },
-  { src: "assets/img/clubs/kq107726.jpg", w: 2400, h: 1800, title: "", category: "clubs" },
-  { src: "assets/img/clubs/kq107602.jpg", w: 2400, h: 1800, title: "", category: "clubs" },
-  { src: "assets/img/clubs/kq107581.jpg", w: 2400, h: 1800, title: "", category: "clubs" },
-  { src: "assets/img/clubs/kq107698.jpg", w: 2400, h: 1800, title: "", category: "clubs" },
-  { src: "assets/img/clubs/kq107740.jpg", w: 2400, h: 1800, title: "", category: "clubs" },
   { src: "assets/img/clubs/kq107130.jpg", w: 2400, h: 1800, title: "", category: "clubs" },
   { src: "assets/img/clubs/kq107188.jpg", w: 2400, h: 1800, title: "", category: "clubs" },
   { src: "assets/img/clubs/kq107222.jpg", w: 2400, h: 1800, title: "", category: "clubs" },
   { src: "assets/img/clubs/kq107258.jpg", w: 2400, h: 1800, title: "", category: "clubs" },
+  { src: "assets/img/clubs/kq107465.jpg", w: 2400, h: 1800, title: "", category: "clubs" },
+  { src: "assets/img/clubs/kq107726.jpg", w: 2400, h: 1800, title: "", category: "clubs" },
+  { src: "assets/img/clubs/kq107602.jpg", w: 2400, h: 1800, title: "", category: "clubs" },
+  { src: "assets/img/clubs/kq107581.jpg", w: 2400, h: 1800, title: "", category: "clubs" },
+  { src: "assets/img/clubs/kq107740.jpg", w: 2400, h: 1800, title: "", category: "clubs" },
+  { src: "assets/img/clubs/kq107698.jpg", w: 2400, h: 1800, title: "", category: "clubs" },
 
   /* --- PORTRAITS --- */
   { src: "assets/img/portraits/portrait-01.jpg", w: 2000, h: 2500, title: "Studio, single strobe", category: "portraits" },
