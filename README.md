@@ -75,6 +75,29 @@ editor's token box and nowhere else. It's stored in that browser only;
 "Sign out" erases it. If it ever leaks, revoke it at
 https://github.com/settings/personal-access-tokens and make a new one.
 
+### Staying signed in
+
+You sign in once per device and stay signed in until you press **Sign out**.
+Closing the tab, restarting the browser and rebooting the machine all keep the
+session.
+
+Two things genuinely end it, and the editor tells you which:
+
+- **Losing connection.** You'll see *"Still signed in — can't reach GitHub"*
+  with a **Try again** button. Your session is untouched; it reconnects by
+  itself as soon as you're back online. Don't make a new token for this.
+- **The token expiring or being revoked.** Only then are you asked to sign in
+  again. The editor warns you in the banner for the last 10 days before expiry,
+  so it shouldn't catch you at a festival.
+
+Sign-in is per browser and per device, because the token is stored on the
+device — signing in on your phone doesn't sign you in on the laptop. That's
+deliberate: a stolen laptop shouldn't hand over your phone's access.
+
+If you want to avoid re-doing this, pick a long expiry when you create the
+token. There's a no-expiration option; it's convenient, and it means a leaked
+token stays useful to whoever finds it forever. A year is a reasonable middle.
+
 ### The one gotcha: pull before editing locally
 
 If you publish from your phone, the copy on your computer is now out of date.

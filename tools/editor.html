@@ -151,6 +151,20 @@ ol.steps b{color:var(--text)}
 
 <div class="wrap">
 
+  <!-- Shown when we HAVE a saved token but couldn't reach GitHub just now.
+       Deliberately distinct from the sign-in gate: the session is intact,
+       only the connection failed. -->
+  <div class="gate" id="reconnect" hidden>
+    <div class="card">
+      <h2>Still signed in — can't reach GitHub</h2>
+      <p class="hint" id="reconnectMsg"></p>
+      <p class="note">Your sign-in is saved. This is a connection problem, not
+         a token problem — you don't need to make a new one.</p>
+      <button class="btn btn--primary" id="retryBtn">Try again</button>
+      <button class="btn btn--ghost" id="forgetBtn">Sign out instead</button>
+    </div>
+  </div>
+
   <!-- ===================== REMOTE SIGN-IN GATE ===================== -->
   <div class="gate" id="gate" hidden>
     <div class="card">
@@ -402,6 +416,7 @@ function GitHubBackend(repo, token) {
   const [owner, name] = repo.split("/");
   const API = "https://api.github.com";
   const branch = "main";
+  let tokenExpiry = null;
 
   async function api(path, method, body) {
     let res;
@@ -419,14 +434,23 @@ function GitHubBackend(repo, token) {
     } catch (e) {
       // fetch() only rejects for network/CORS failures, never for HTTP errors.
       // Opening this file directly from disk is by far the most common cause.
-      throw new Error(
+      const err = new Error(
         location.protocol === "file:"
           ? "Can't reach GitHub because this page was opened from a file on your " +
             "computer. Remote editing needs the published address: " +
             "https://kay-quan.github.io/tools/editor.html"
           : "Couldn't reach GitHub. Check your internet connection and try again."
       );
+      // Flagged so a dropped connection is never mistaken for a bad token.
+      err.network = true;
+      throw err;
     }
+
+    // GitHub reports a token's expiry date on every response. Not always
+    // exposed through CORS, so treat it as a bonus rather than a guarantee.
+    const exp = res.headers.get("github-authentication-token-expiration");
+    if (exp) tokenExpiry = exp;
+
     if (!res.ok) {
       let detail = "";
       try { detail = (await res.json()).message || ""; } catch {}
@@ -449,11 +473,13 @@ function GitHubBackend(repo, token) {
       // Repo access is the check that actually matters. Do it first, and make
       // it the thing that reports failure.
       await api("/repos/" + owner + "/" + name);
-      // /user is only for the friendly "signed in as" label. A token scoped
-      // narrowly enough may not be allowed to call it, which must not block
-      // sign-in.
+      // The identity lookup is only for the friendly "signed in as" label. A
+      // token scoped narrowly enough may not be allowed to call it, which
+      // must not block sign-in.
       try { return (await api("/user")).login; } catch { return owner; }
     },
+
+    expiry() { return tokenExpiry; },
 
     async loadText(path) {
       const r = await api("/repos/" + owner + "/" + name + "/contents/" + path + "?ref=" + branch);
@@ -826,6 +852,69 @@ async function signIn() {
   } catch (err) { toast(err.message, "bad"); }
 }
 
+/* Restore a saved session.
+   The important distinction: a token that GitHub *rejected* is dead and must
+   be replaced, but a request that never arrived says nothing about the token.
+   Only the first case clears the session. */
+async function resumeSession(loud) {
+  const token = localStorage.getItem(LS_TOKEN);
+  const repo = localStorage.getItem(LS_REPO) || "kay-quan/kay-quan.github.io";
+  if (!token) return false;
+
+  if (loud) { $("#retryBtn").disabled = true; $("#retryBtn").textContent = "Connecting…"; }
+
+  const be = GitHubBackend(repo, token);
+  try {
+    const login = await be.verify();
+    backend = be;
+    setStatus(login + " · " + repo, true);
+    $("#reconnect").hidden = true;
+
+    let note = "<b>Editing " + repo + " directly.</b> Publishing commits straight " +
+               "to GitHub and the live site updates about a minute later.";
+
+    // Warn before the token dies, rather than after.
+    const exp = be.expiry();
+    if (exp) {
+      const days = Math.ceil((new Date(exp) - Date.now()) / 86400000);
+      if (isFinite(days) && days <= 10) {
+        note += " <b>Heads up:</b> this access token expires in " + days +
+                " day" + (days === 1 ? "" : "s") +
+                ". Make a new one before then and sign in again.";
+      }
+    }
+    $("#contextNote").innerHTML = note;
+
+    await afterConnect();
+    if (loud) toast("Reconnected.", "ok");
+    return true;
+
+  } catch (err) {
+    if (err.network) {
+      // Connection problem. Keep the session; offer a retry.
+      $("#gate").hidden = true;
+      $("#editor").hidden = true;
+      $("#reconnectMsg").textContent = err.message;
+      $("#reconnect").hidden = false;
+      setStatus("Offline — saved session", false);
+    } else if (err.status === 401) {
+      // GitHub actively rejected it. This one really is dead.
+      localStorage.removeItem(LS_TOKEN);
+      $("#reconnect").hidden = true;
+      $("#gate").hidden = false;
+      toast("Your access token expired or was revoked. Make a new one below.", "warn");
+    } else {
+      // Permissions, missing repo, etc. Token may be fine, so keep it.
+      $("#reconnect").hidden = true;
+      $("#gate").hidden = false;
+      toast(err.message, "bad");
+    }
+    return false;
+  } finally {
+    if (loud) { $("#retryBtn").disabled = false; $("#retryBtn").textContent = "Try again"; }
+  }
+}
+
 function signOut() {
   localStorage.removeItem(LS_TOKEN);
   backend = null; dirty = false;
@@ -873,6 +962,7 @@ function applyMode(m) {
   backend = null; dirty = false;
   pendingImages.clear(); thumbCache.clear();
   $("#editor").hidden = true;
+  $("#reconnect").hidden = true;
   $("#staleNote").hidden = true;
   $("#saveBtn").disabled = true;
   $("#saveBtn").textContent = m === "remote" ? "Publish" : "Save";
@@ -965,24 +1055,19 @@ function wireDrop(zone, onFiles) {
 
   window.addEventListener("beforeunload", e => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
 
+  $("#retryBtn").addEventListener("click", () => resumeSession(true));
+  $("#forgetBtn").addEventListener("click", signOut);
+
+  // A session dropped by a flaky connection should heal itself the moment
+  // the network is back, without the user doing anything.
+  window.addEventListener("online", () => {
+    if (mode === "remote" && !backend && localStorage.getItem(LS_TOKEN)) resumeSession(true);
+  });
+
   applyMode(mode);
 
-  // Auto-resume remote session if a token is already stored here.
   if (mode === "remote") {
-    const token = localStorage.getItem(LS_TOKEN);
-    const repo = localStorage.getItem(LS_REPO) || "kay-quan/kay-quan.github.io";
-    if (token) {
-      const be = GitHubBackend(repo, token);
-      try {
-        const login = await be.verify();
-        backend = be;
-        setStatus(login + " · " + repo, true);
-        $("#contextNote").innerHTML =
-          "<b>Editing " + repo + " directly.</b> Publishing commits straight to GitHub " +
-          "and the live site updates about a minute later.";
-        await afterConnect();
-      } catch (err) { toast(err.message, "bad"); }
-    }
+    await resumeSession(false);
   } else {
     const prev = await loadHandle();
     if (prev && (await prev.queryPermission({ mode: "readwrite" })) === "granted") {
