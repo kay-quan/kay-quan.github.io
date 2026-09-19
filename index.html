@@ -57,14 +57,14 @@
     <div class="hero__media" data-hero-media></div>
 
     <div class="wrap hero__inner">
-      <p class="hero__kicker eyebrow eyebrow--accent">Festival &amp; live music photography</p>
+      <p class="hero__kicker eyebrow eyebrow--accent" data-text="heroKicker">Festival &amp; live music photography</p>
 
       <h1 class="display-xl hero__title">
-        <span class="line"><span>Kevin</span></span>
-        <span class="line"><span>Quan</span></span>
+        <span class="line"><span data-text="heroLine1">Kevin</span></span>
+        <span class="line"><span data-text="heroLine2">Quan</span></span>
       </h1>
 
-      <p class="hero__sub">
+      <p class="hero__sub" data-text="heroSub">
         I shoot festivals — main stages, barricades, the ten minutes before
         someone walks on. Portraits, weddings and food the rest of the year.
       </p>
@@ -89,8 +89,8 @@
 
       <div class="section-head" data-reveal>
         <div class="section-head__text">
-          <span class="eyebrow eyebrow--accent">Selected work</span>
-          <h2 class="display-lg">On the<br>Barricade</h2>
+          <span class="eyebrow eyebrow--accent" data-text="featuredEyebrow">Selected work</span>
+          <h2 class="display-lg" data-text-lines="featuredTitle">On the<br>Barricade</h2>
         </div>
         <a class="link-arrow" href="festivals.html">
           All festival work <span aria-hidden="true">→</span>
@@ -109,9 +109,9 @@
 
       <div class="section-head" data-reveal>
         <div class="section-head__text">
-          <span class="eyebrow">Beyond the stage</span>
-          <h2 class="display-lg">The rest<br>of the year</h2>
-          <p class="lede" style="margin-top:1.25rem">
+          <span class="eyebrow" data-text="otherEyebrow">Beyond the stage</span>
+          <h2 class="display-lg" data-text-lines="otherTitle">The rest<br>of the year</h2>
+          <p class="lede" style="margin-top:1.25rem" data-text="otherLede">
             Festivals are seasonal. These aren't.
           </p>
         </div>
@@ -121,27 +121,35 @@
       </div>
 
       <div class="cards">
-        <a class="card" href="work.html#portraits" data-reveal style="--i:0">
+        <a class="card" href="work.html#clubs" data-reveal style="--i:0">
+          <div class="card__media" data-card-media="clubs"></div>
+          <div class="card__body">
+            <h3 class="display-md">Clubs</h3>
+            <p data-text="cardClubs">Late rooms and small stages. Same job as a festival, tighter.</p>
+          </div>
+        </a>
+
+        <a class="card" href="work.html#portraits" data-reveal style="--i:1">
           <div class="card__media" data-card-media="portraits"></div>
           <div class="card__body">
             <h3 class="display-md">Portraits</h3>
-            <p>Studio and location. Musicians, and everyone else.</p>
+            <p data-text="cardPortraits">Studio and location. Musicians, and everyone else.</p>
           </div>
         </a>
 
-        <a class="card" href="work.html#weddings" data-reveal style="--i:1">
+        <a class="card" href="work.html#weddings" data-reveal style="--i:2">
           <div class="card__media" data-card-media="weddings"></div>
           <div class="card__body">
             <h3 class="display-md">Weddings</h3>
-            <p>Documentary-leaning. Few setups, a lot of watching.</p>
+            <p data-text="cardWeddings">Documentary-leaning. Few setups, a lot of watching.</p>
           </div>
         </a>
 
-        <a class="card" href="work.html#food" data-reveal style="--i:2">
+        <a class="card" href="work.html#food" data-reveal style="--i:3">
           <div class="card__media" data-card-media="food"></div>
           <div class="card__body">
             <h3 class="display-md">Food</h3>
-            <p>Menus, restaurants and the pass mid-service.</p>
+            <p data-text="cardFood">Menus, restaurants and the pass mid-service.</p>
           </div>
         </a>
       </div>
@@ -155,9 +163,9 @@
       <div class="split split--sidebar">
 
         <div data-reveal>
-          <span class="eyebrow eyebrow--accent">How I work</span>
-          <h2 class="display-lg" style="margin:1rem 0 1.75rem">Fast,<br>unlit,<br>close</h2>
-          <div class="prose">
+          <span class="eyebrow eyebrow--accent" data-text="approachEyebrow">How I work</span>
+          <h2 class="display-lg" style="margin:1rem 0 1.75rem" data-text-lines="approachTitle">Fast,<br>unlit,<br>close</h2>
+          <div class="prose" data-text-body="approachBody">
             <p>
               Festival light changes every eight seconds and nobody is going to
               wait for you. I shoot fast, I don't add light, and I get close
@@ -174,24 +182,24 @@
         <div data-reveal style="--i:1">
           <dl class="facts">
             <div class="facts__row">
-              <dt>Based</dt>
-              <dd>Add your city here</dd>
+              <dt data-text="homeFact1Label">Based</dt>
+              <dd data-text="homeFact1Value">Add your city here</dd>
             </div>
             <div class="facts__row">
-              <dt>Travel</dt>
-              <dd>Anywhere there's a stage</dd>
+              <dt data-text="homeFact2Label">Travel</dt>
+              <dd data-text="homeFact2Value">Anywhere there's a stage</dd>
             </div>
             <div class="facts__row">
-              <dt>Turnaround</dt>
-              <dd>Same-night selects, full gallery in 72 hours</dd>
+              <dt data-text="homeFact3Label">Turnaround</dt>
+              <dd data-text="homeFact3Value">Same-night selects, full gallery in 72 hours</dd>
             </div>
             <div class="facts__row">
-              <dt>Covers</dt>
-              <dd>Festivals, tours, press, portraits, weddings, food</dd>
+              <dt data-text="homeFact4Label">Covers</dt>
+              <dd data-text="homeFact4Value">Festivals, clubs, tours, press, portraits, weddings, food</dd>
             </div>
             <div class="facts__row">
-              <dt>Clients</dt>
-              <dd>Add promoters, venues and publications here</dd>
+              <dt data-text="homeFact5Label">Clients</dt>
+              <dd data-text="homeFact5Value">Add promoters, venues and publications here</dd>
             </div>
           </dl>
         </div>
@@ -203,15 +211,15 @@
   <!-- ===================== CTA ===================== -->
   <section class="cta">
     <div class="wrap wrap--narrow">
-      <span class="eyebrow eyebrow--accent" data-reveal>Bookings open</span>
-      <h2 class="display-lg" style="margin:1.25rem 0 1.5rem; --i:1" data-reveal>
+      <span class="eyebrow eyebrow--accent" data-reveal data-text="ctaEyebrow">Bookings open</span>
+      <h2 class="display-lg" style="margin:1.25rem 0 1.5rem; --i:1" data-reveal data-text="ctaTitle">
         Shooting a festival?
       </h2>
-      <p class="lede" data-reveal>
+      <p class="lede" data-reveal data-text="ctaLede">
         Send the dates and the lineup. I'll tell you straight away whether I'm free.
       </p>
       <!-- Change this address in all four pages when you pick your work email -->
-      <a class="mail-link" href="mailto:hello@example.com">hello@example.com</a>
+      <a class="mail-link" data-text-mail="email" href="mailto:hello@example.com">hello@example.com</a>
     </div>
   </section>
 
@@ -223,7 +231,7 @@
     <div class="footer__grid">
       <div>
         <p class="footer__brand">Kevin Quan<i>.</i></p>
-        <p class="muted" style="font-size:0.85rem">Festival &amp; live music photography</p>
+        <p class="muted" style="font-size:0.85rem" data-text="tagline">Festival &amp; live music photography</p>
       </div>
 
       <nav class="footer__nav" aria-label="Footer">
@@ -232,17 +240,18 @@
         <a href="about.html">About</a>
         <a href="about.html#contact">Contact</a>
         <!-- Replace these with your real profiles, or delete them -->
-        <a href="https://instagram.com/" rel="me noopener" target="_blank">Instagram</a>
+        <a href="https://instagram.com/" data-text-href="instagramUrl" rel="me noopener" target="_blank">Instagram</a>
       </nav>
     </div>
 
     <div class="footer__bottom">
       <span>© <span data-year>2026</span> Kevin Quan. All rights reserved.</span>
-      <span>All photographs are my own work.</span>
+      <span data-text="footerNote">All photographs are my own work.</span>
     </div>
   </div>
 </footer>
 
+<script src="assets/js/content.js"></script>
 <script src="assets/js/photos.js"></script>
 <script src="assets/js/site.js"></script>
 </body>

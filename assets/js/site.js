@@ -18,6 +18,7 @@
 
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var photos = window.PHOTOS || [];
+  var TEXT = window.TEXT || {};
 
   var $  = function (sel, root) { return (root || document).querySelector(sel); };
   var $$ = function (sel, root) {
@@ -67,6 +68,67 @@
       img.addEventListener("error", fail, { once: true });
     }
   }
+
+  /* ======================================================================
+     TEXT  —  swap in the copy from content.js
+
+     Every editable string lives in content.js. The words sitting in the HTML
+     are a fallback for if that file fails to load, so nothing ever renders
+     empty. Runs immediately rather than on DOMContentLoaded: this script sits
+     at the end of <body>, so the DOM above it is already parsed, and doing it
+     now avoids a visible flash of the old wording.
+
+       data-text       plain text
+       data-text-lines newlines become line breaks (for stacked headings)
+       data-text-body  blank lines become separate paragraphs
+       data-text-mail  sets the text and the mailto: link together
+       data-text-href  sets just the link target
+     ====================================================================== */
+
+  function applyText() {
+    if (!window.TEXT) return;
+
+    $$("[data-text]").forEach(function (el) {
+      var v = TEXT[el.dataset.text];
+      if (typeof v === "string") el.textContent = v;
+    });
+
+    $$("[data-text-lines]").forEach(function (el) {
+      var v = TEXT[el.dataset.textLines];
+      if (typeof v !== "string") return;
+      el.innerHTML = "";
+      v.split("\n").forEach(function (line, i) {
+        if (i) el.appendChild(document.createElement("br"));
+        el.appendChild(document.createTextNode(line));
+      });
+    });
+
+    $$("[data-text-body]").forEach(function (el) {
+      var v = TEXT[el.dataset.textBody];
+      if (typeof v !== "string") return;
+      el.innerHTML = "";
+      v.split(/\n\s*\n/).forEach(function (para) {
+        if (!para.trim()) return;
+        var p = document.createElement("p");
+        p.textContent = para.trim();
+        el.appendChild(p);
+      });
+    });
+
+    $$("[data-text-mail]").forEach(function (el) {
+      var v = TEXT[el.dataset.textMail];
+      if (typeof v !== "string" || !v) return;
+      el.textContent = v;
+      el.setAttribute("href", "mailto:" + v);
+    });
+
+    $$("[data-text-href]").forEach(function (el) {
+      var v = TEXT[el.dataset.textHref];
+      if (typeof v === "string" && v) el.setAttribute("href", v);
+    });
+  }
+
+  applyText();
 
   /* ======================================================================
      NAV
@@ -527,7 +589,7 @@
 
   function labelFor(cat) {
     return ({
-      festivals: "Festivals", portraits: "Portraits",
+      festivals: "Festivals", clubs: "Clubs", portraits: "Portraits",
       weddings: "Weddings",  food: "Food"
     })[cat] || "";
   }

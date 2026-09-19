@@ -81,9 +81,17 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
 .drop:hover,.drop.over{border-color:var(--accent);background:rgba(255,95,61,.06);color:var(--text)}
 
 .group{margin-bottom:1.7rem}
-.group > h3{font-size:.74rem;text-transform:uppercase;letter-spacing:.14em;color:var(--faint);
-            margin-bottom:.55rem;display:flex;align-items:center;gap:.6rem}
-.group > h3::after{content:"";flex:1;height:1px;background:var(--line-soft)}
+.group-head{width:100%;font-size:.74rem;text-transform:uppercase;letter-spacing:.14em;
+            color:var(--faint);margin-bottom:.55rem;display:flex;align-items:center;gap:.6rem;
+            padding:.3rem 0;text-align:left;transition:color .15s}
+.group-head:hover{color:var(--text)}
+.group-head::after{content:"";flex:1;height:1px;background:var(--line-soft)}
+.group-head .chev{display:inline-block;transition:transform .18s;font-size:.7rem;color:var(--accent)}
+.group-head[aria-expanded="false"] .chev{transform:rotate(-90deg)}
+.group-head .count{background:var(--surface2);border-radius:999px;padding:.05rem .45rem;
+                   font-size:.68rem;letter-spacing:.06em;color:var(--dim)}
+.group-head[aria-expanded="false"] .count{color:var(--accent)}
+.group-body[hidden]{display:none}
 
 .item{display:grid;grid-template-columns:76px 1fr auto;gap:.8rem;align-items:start;
       background:var(--surface);border:1px solid var(--line-soft);border-radius:9px;
@@ -243,6 +251,7 @@ ol.steps b{color:var(--text)}
     <div class="tabs" role="tablist">
       <button class="tab" role="tab" aria-selected="true"  data-panel="photos">Photos</button>
       <button class="tab" role="tab" aria-selected="false" data-panel="home">Homepage</button>
+      <button class="tab" role="tab" aria-selected="false" data-panel="text">Text</button>
       <button class="tab" role="tab" aria-selected="false" data-panel="preview">Preview</button>
     </div>
 
@@ -257,6 +266,7 @@ ol.steps b{color:var(--text)}
           <label class="f"><span>Put them in</span>
             <select id="addCategory">
               <option value="festivals">Festivals</option>
+              <option value="clubs">Clubs</option>
               <option value="portraits">Portraits</option>
               <option value="weddings">Weddings</option>
               <option value="food">Food</option>
@@ -295,6 +305,16 @@ ol.steps b{color:var(--text)}
           <button class="btn btn--sm" id="marqueeAdd" style="flex:0 0 auto">Add</button>
         </div>
       </div>
+    </section>
+
+    <!-- ===================== TEXT ===================== -->
+    <section class="panel" id="panel-text" role="tabpanel" hidden>
+      <div class="note">
+        Every word on the site, in one place. Write it the way you'd say it —
+        this is what makes a portfolio sound like a person rather than a
+        template. Check the <b>Preview</b> tab before publishing.
+      </div>
+      <div id="textFields"></div>
     </section>
 
     <!-- ===================== PREVIEW ===================== -->
@@ -347,14 +367,18 @@ ol.steps b{color:var(--text)}
 
 const $  = (s, r) => (r || document).querySelector(s);
 const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
-const CATEGORIES = ["festivals", "portraits", "weddings", "food"];
+/* Order here drives the order of sections in photos.js and in this editor.
+   Live-music work first, since that's the thrust of the portfolio. */
+const CATEGORIES = ["festivals", "clubs", "portraits", "weddings", "food"];
 const LS_TOKEN = "siteEditor.token", LS_REPO = "siteEditor.repo", LS_MODE = "siteEditor.mode";
+const LS_COLLAPSED = "siteEditor.collapsed";
 const PHOTOS_PATH = "assets/js/photos.js";
 
 let backend = null;
 let mode = localStorage.getItem(LS_MODE) || "remote";
 let data = { hero: { src: "", alt: "" }, photos: [], marquee: [] };
 let dirty = false;
+let textData = {};          // contents of content.js
 const thumbCache = new Map();     // src -> url
 const pendingImages = new Map();  // path -> Blob  (not yet written/committed)
 
@@ -669,7 +693,8 @@ async function save() {
     const text = serialize(clean);
 
     if (backend.kind === "remote") {
-      const files = [{ path: PHOTOS_PATH, base64: textToB64(text) }];
+      const files = [{ path: PHOTOS_PATH, base64: textToB64(text) },
+                     { path: CONTENT_PATH, base64: textToB64(serializeContent(textData)) }];
       for (const [path, blob] of pendingImages) files.push({ path, base64: await blobToB64(blob) });
 
       const n = pendingImages.size;
@@ -689,7 +714,8 @@ async function save() {
         "open GitHub Desktop and click <b>Pull origin</b>.";
       toast("Published. Live in about a minute.", "ok");
     } else {
-      const files = [{ path: PHOTOS_PATH, text }];
+      const files = [{ path: PHOTOS_PATH, text },
+                     { path: CONTENT_PATH, text: serializeContent(textData) }];
       for (const [path, blob] of pendingImages) files.push({ path, blob });
       await backend.commit(files);
       pendingImages.clear();
@@ -733,7 +759,22 @@ function markMissing(el) {
   if (row) row.classList.add("missing");
 }
 
-function renderAll() { renderPhotos(); renderHero(); renderMarquee(); }
+/* Which category sections are folded shut. Kept outside the render so it
+   survives renderPhotos() running on every keystroke, and in localStorage so
+   it survives a reload. */
+const collapsed = new Set((() => {
+  try { return JSON.parse(localStorage.getItem(LS_COLLAPSED)) || []; } catch { return []; }
+})());
+
+function toggleGroup(cat, head, body) {
+  const nowOpen = collapsed.has(cat);
+  if (nowOpen) collapsed.delete(cat); else collapsed.add(cat);
+  head.setAttribute("aria-expanded", String(nowOpen));
+  body.hidden = !nowOpen;
+  try { localStorage.setItem(LS_COLLAPSED, JSON.stringify([...collapsed])); } catch {}
+}
+
+function renderAll() { renderPhotos(); renderHero(); renderMarquee(); renderText(); }
 
 function renderPhotos() {
   const root = $("#photoList");
@@ -745,7 +786,21 @@ function renderPhotos() {
     if (!set.length) return;
     const g = document.createElement("div");
     g.className = "group";
-    g.innerHTML = "<h3>" + cat + " &middot; " + set.length + "</h3>";
+
+    const isOpen = !collapsed.has(cat);
+    const head = document.createElement("button");
+    head.type = "button";
+    head.className = "group-head";
+    head.setAttribute("aria-expanded", String(isOpen));
+    head.innerHTML = '<span class="chev">▾</span>' + cat +
+                     '<span class="count">' + set.length + "</span>";
+
+    const body = document.createElement("div");
+    body.className = "group-body";
+    body.hidden = !isOpen;
+    head.addEventListener("click", () => toggleGroup(cat, head, body));
+
+    g.append(head, body);
 
     set.forEach(p => {
       const i = data.photos.indexOf(p);
@@ -806,7 +861,7 @@ function renderPhotos() {
 
       ctrls.append(feat, up, dn, del);
       row.append(thumb, fields, ctrls);
-      g.appendChild(row);
+      body.appendChild(row);
       thumbFor(p.src, thumb);
     });
     root.appendChild(g);
@@ -846,6 +901,170 @@ function renderMarquee() {
   });
 }
 
+/* ================================= TEXT ==================================
+   content.js holds every editable string. Described here as labelled groups
+   so the editor shows "Bio" rather than "aboutBody".
+   ========================================================================= */
+
+const CONTENT_PATH = "assets/js/content.js";
+
+const TEXT_GROUPS = [
+  { title: "Contact & everywhere", hint: "Used across every page. Fixing the email is the single most important edit on this list.", fields: [
+    ["email",           "Email address", "line"],
+    ["instagramUrl",    "Instagram link", "line"],
+    ["instagramHandle", "Instagram handle", "line"],
+    ["tagline",         "Tagline (footer)", "line"],
+    ["footerNote",      "Footer small print", "line"]
+  ]},
+  { title: "Homepage — the big opening", hint: "The first thing anyone sees. The two name lines stack on top of each other.", fields: [
+    ["heroKicker", "Small line above your name", "line"],
+    ["heroLine1",  "Name, first line", "line"],
+    ["heroLine2",  "Name, second line", "line"],
+    ["heroSub",    "Introduction underneath", "area"]
+  ]},
+  { title: "Homepage — selected work", fields: [
+    ["featuredEyebrow", "Small label", "line"],
+    ["featuredTitle",   "Heading (Enter = new line)", "area"]
+  ]},
+  { title: "Homepage — other work", fields: [
+    ["otherEyebrow", "Small label", "line"],
+    ["otherTitle",   "Heading (Enter = new line)", "area"],
+    ["otherLede",    "Sentence underneath", "area"],
+    ["cardClubs",     "Clubs card blurb", "area"],
+    ["cardPortraits", "Portraits card blurb", "area"],
+    ["cardWeddings",  "Weddings card blurb", "area"],
+    ["cardFood",      "Food card blurb", "area"]
+  ]},
+  { title: "Homepage — how you work", hint: "Leave a blank line between paragraphs.", fields: [
+    ["approachEyebrow", "Small label", "line"],
+    ["approachTitle",   "Heading (Enter = new line)", "area"],
+    ["approachBody",    "Paragraphs", "big"]
+  ]},
+  { title: "Homepage — the facts list", hint: "The short list beside it. Left column, then right column.", fields: [
+    ["homeFact1Label", "Row 1 label", "line"], ["homeFact1Value", "Row 1 value", "line"],
+    ["homeFact2Label", "Row 2 label", "line"], ["homeFact2Value", "Row 2 value", "line"],
+    ["homeFact3Label", "Row 3 label", "line"], ["homeFact3Value", "Row 3 value", "line"],
+    ["homeFact4Label", "Row 4 label", "line"], ["homeFact4Value", "Row 4 value", "line"],
+    ["homeFact5Label", "Row 5 label", "line"], ["homeFact5Value", "Row 5 value", "line"]
+  ]},
+  { title: "Homepage — closing pitch", fields: [
+    ["ctaEyebrow", "Small label", "line"],
+    ["ctaTitle",   "Heading (Enter = new line)", "area"],
+    ["ctaLede",    "Sentence underneath", "area"]
+  ]},
+  { title: "Festivals page", fields: [
+    ["festEyebrow",  "Small label", "line"],
+    ["festTitle",    "Page heading", "area"],
+    ["festLede",     "Intro paragraph", "area"],
+    ["festCtaTitle", "Closing heading", "area"],
+    ["festCtaLede",  "Closing sentence", "area"]
+  ]},
+  { title: "Other Work page", fields: [
+    ["workEyebrow",  "Small label", "line"],
+    ["workTitle",    "Page heading (Enter = new line)", "area"],
+    ["workLede",     "Intro paragraph", "area"],
+    ["workCtaTitle", "Closing heading", "area"],
+    ["workCtaLede",  "Closing sentence", "area"]
+  ]},
+  { title: "About page", hint: "The bit people read right before deciding to email you. Blank line between paragraphs.", fields: [
+    ["aboutEyebrow", "Small label", "line"],
+    ["aboutTitle",   "Page heading", "area"],
+    ["aboutLede",    "Opening line", "area"],
+    ["aboutBody",    "Bio", "big"],
+    ["aboutFact1Label", "Fact 1 label", "line"], ["aboutFact1Value", "Fact 1 value", "line"],
+    ["aboutFact2Label", "Fact 2 label", "line"], ["aboutFact2Value", "Fact 2 value", "line"],
+    ["aboutFact3Label", "Fact 3 label", "line"], ["aboutFact3Value", "Fact 3 value", "line"],
+    ["aboutFact4Label", "Fact 4 label", "line"], ["aboutFact4Value", "Fact 4 value", "line"]
+  ]},
+  { title: "Contact section", fields: [
+    ["contactEyebrow", "Small label", "line"],
+    ["contactTitle",   "Heading (Enter = new line)", "area"],
+    ["contactLede",    "Sentence underneath", "area"],
+    ["contactFact1Label", "Row 1 label", "line"], ["contactFact1Value", "Row 1 value", "line"],
+    ["contactFact2Label", "Row 2 label", "line"], ["contactFact2Value", "Row 2 value", "line"]
+  ]}
+];
+
+function parseContentJs(code) {
+  const stub = {};
+  new Function("window", code + "\n;")(stub);
+  return stub.TEXT || {};
+}
+
+function serializeContent(t) {
+  const L = [];
+  L.push("/* ==========================================================================");
+  L.push("   CONTENT.JS - every word on the site.");
+  L.push("");
+  L.push("   Easiest way to edit this is tools/editor.html, the Text tab, which");
+  L.push("   writes this file for you. Hand-editing is fine too.");
+  L.push("");
+  L.push("   Elements in the HTML carry data-text=\"someKey\" and get their contents");
+  L.push("   replaced from here on load, so this file is the source of truth.");
+  L.push("   ========================================================================== */");
+  L.push("");
+  L.push("window.TEXT = {");
+  TEXT_GROUPS.forEach(g => {
+    L.push("");
+    L.push("  /* --- " + g.title + " --- */");
+    g.fields.forEach(([key]) => {
+      if (key in t) L.push("  " + key + ": " + JSON.stringify(t[key]) + ",");
+    });
+  });
+  // Anything the editor doesn't know about is preserved rather than dropped.
+  const known = new Set(TEXT_GROUPS.flatMap(g => g.fields.map(f => f[0])));
+  const extra = Object.keys(t).filter(k => !known.has(k));
+  if (extra.length) {
+    L.push("");
+    L.push("  /* --- other --- */");
+    extra.forEach(k => L.push("  " + k + ": " + JSON.stringify(t[k]) + ","));
+  }
+  // Trim the trailing comma off the final entry.
+  const last = L.length - 1;
+  if (L[last].endsWith(",")) L[last] = L[last].slice(0, -1);
+  L.push("};");
+  L.push("");
+  return L.join("\n");
+}
+
+function renderText() {
+  const root = $("#textFields");
+  root.innerHTML = "";
+  TEXT_GROUPS.forEach(g => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = "<h2>" + g.title + "</h2>" +
+                     (g.hint ? '<p class="hint">' + g.hint + "</p>" : "");
+
+    const pairs = g.fields.every(f => /Label$|Value$/.test(f[0]));
+    let rowWrap = null;
+
+    g.fields.forEach(([key, label, kind], i) => {
+      const lab = document.createElement("label");
+      lab.className = "f";
+      lab.innerHTML = "<span>" + label + "</span>";
+
+      const el = document.createElement(kind === "line" ? "input" : "textarea");
+      if (kind === "line") el.type = "text";
+      if (kind === "area") el.rows = 3;
+      if (kind === "big")  el.rows = 10;
+      el.value = textData[key] != null ? textData[key] : "";
+      el.addEventListener("input", () => { textData[key] = el.value; markDirty(); });
+      lab.appendChild(el);
+
+      // Label/value pairs read better side by side.
+      if (pairs && i % 2 === 0) {
+        rowWrap = document.createElement("div");
+        rowWrap.className = "row";
+        card.appendChild(rowWrap);
+      }
+      (pairs && rowWrap ? rowWrap : card).appendChild(lab);
+    });
+
+    root.appendChild(card);
+  });
+}
+
 /* =============================== PREVIEW =================================
    Renders the actual site — its real HTML, CSS and JavaScript — with the
    draft content injected in place of the committed photos.js, so what you
@@ -877,7 +1096,8 @@ function draftDataScript() {
   });
   return "window.HERO=" + safeJSON(hero) + ";" +
          "window.PHOTOS=" + safeJSON(photos) + ";" +
-         "window.MARQUEE=" + safeJSON(data.marquee) + ";";
+         "window.MARQUEE=" + safeJSON(data.marquee) + ";" +
+         "window.TEXT=" + safeJSON(textData) + ";";
 }
 
 async function getShell(page) {
@@ -894,13 +1114,27 @@ async function renderPreview() {
   try {
     let html = await getShell(page);
 
-    // Replace the committed data file with the draft.
-    const tag = /<script[^>]*src=["'][^"']*photos\.js["'][^>]*>\s*<\/script>/i;
+    // Swap the committed data files for the draft. Order is load-bearing:
+    // site.js reads these globals as soon as it runs, so the injection has to
+    // land BEFORE it, never at the end of the body.
+    //
+    // Function replacements throughout: a "$&" or "$'" inside a caption would
+    // otherwise be read as a substitution pattern and mangle the data.
     const inject = "<script>" + draftDataScript() + "<\/script>";
-    // Function replacements: a "$&" or "$'" inside a caption would otherwise
-    // be treated as a substitution pattern and mangle the data.
-    html = tag.test(html) ? html.replace(tag, () => inject)
-                          : html.replace(/<\/body>/i, () => inject + "</body>");
+
+    html = html.replace(
+      /<script[^>]*src=["'][^"']*content\.js["'][^>]*>\s*<\/script>\s*/gi, "");
+
+    const photosTag = /<script[^>]*src=["'][^"']*photos\.js["'][^>]*>\s*<\/script>/i;
+    const siteTag   = /<script[^>]*src=["'][^"']*site\.js["'][^>]*>/i;
+
+    if (photosTag.test(html)) {
+      html = html.replace(photosTag, () => inject);
+    } else if (siteTag.test(html)) {
+      html = html.replace(siteTag, m => inject + m);
+    } else {
+      html = html.replace(/<\/body>/i, () => inject + "</body>");
+    }
 
     // Point relative URLs at the site root.
     const baseTag = '<base href="' + SITE_BASE + '">';
@@ -919,6 +1153,13 @@ async function renderPreview() {
 async function afterConnect() {
   const text = await backend.loadText(PHOTOS_PATH);
   data = parsePhotosJs(text);
+  try {
+    textData = parseContentJs(await backend.loadText(CONTENT_PATH));
+  } catch {
+    // Older checkouts may predate content.js; an empty object lets the HTML
+    // fallbacks stand rather than blanking the site.
+    textData = {};
+  }
   $("#heroAlt").value = data.hero.alt || "";
   pendingImages.clear();
   thumbCache.clear();

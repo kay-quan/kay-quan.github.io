@@ -40,9 +40,9 @@
 
   <section class="page-head">
     <div class="wrap">
-      <span class="eyebrow eyebrow--accent">01 — Festivals</span>
-      <h1 class="display-xl">Festivals</h1>
-      <p class="lede">
+      <span class="eyebrow eyebrow--accent" data-text="festEyebrow">01 — Festivals</span>
+      <h1 class="display-xl" data-text-lines="festTitle">Festivals</h1>
+      <p class="lede" data-text="festLede">
         Main stages, side tents, the pit and everything behind it. Filter by
         event below, or click any frame to open it full screen.
       </p>
@@ -66,11 +66,11 @@
   <section class="cta">
     <div class="wrap wrap--narrow">
       <span class="eyebrow eyebrow--accent">Bookings open</span>
-      <h2 class="display-lg" style="margin:1.25rem 0 1.5rem">Next season</h2>
-      <p class="lede">
+      <h2 class="display-lg" style="margin:1.25rem 0 1.5rem" data-text-lines="festCtaTitle">Next season</h2>
+      <p class="lede" data-text="festCtaLede">
         Festival, tour date or press shoot — send the dates and I'll come back to you quickly.
       </p>
-      <a class="mail-link" href="mailto:hello@example.com">hello@example.com</a>
+      <a class="mail-link" data-text-mail="email" href="mailto:hello@example.com">hello@example.com</a>
     </div>
   </section>
 
@@ -81,23 +81,24 @@
     <div class="footer__grid">
       <div>
         <p class="footer__brand">Kevin Quan<i>.</i></p>
-        <p class="muted" style="font-size:0.85rem">Festival &amp; live music photography</p>
+        <p class="muted" style="font-size:0.85rem" data-text="tagline">Festival &amp; live music photography</p>
       </div>
       <nav class="footer__nav" aria-label="Footer">
         <a href="festivals.html">Festivals</a>
         <a href="work.html">Other Work</a>
         <a href="about.html">About</a>
         <a href="about.html#contact">Contact</a>
-        <a href="https://instagram.com/" rel="me noopener" target="_blank">Instagram</a>
+        <a href="https://instagram.com/" data-text-href="instagramUrl" rel="me noopener" target="_blank">Instagram</a>
       </nav>
     </div>
     <div class="footer__bottom">
       <span>© <span data-year>2026</span> Kevin Quan. All rights reserved.</span>
-      <span>All photographs are my own work.</span>
+      <span data-text="footerNote">All photographs are my own work.</span>
     </div>
   </div>
 </footer>
 
+<script src="assets/js/content.js"></script>
 <script src="assets/js/photos.js"></script>
 <script src="assets/js/site.js"></script>
 </body>

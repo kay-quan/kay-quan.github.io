@@ -31,7 +31,7 @@ param(
 
   # Which gallery folder these belong in.
   [Parameter(Mandatory = $true)]
-  [ValidateSet('festivals', 'portraits', 'weddings', 'food', 'hero')]
+  [ValidateSet('festivals', 'clubs', 'portraits', 'weddings', 'food', 'hero')]
   [string]$Category,
 
   # Festival/event label, used for the filter chips. Festivals only.

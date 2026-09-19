@@ -40,8 +40,8 @@
 
   <section class="page-head">
     <div class="wrap">
-      <span class="eyebrow eyebrow--accent">03 — About</span>
-      <h1 class="display-xl">About</h1>
+      <span class="eyebrow eyebrow--accent" data-text="aboutEyebrow">03 — About</span>
+      <h1 class="display-xl" data-text-lines="aboutTitle">About</h1>
     </div>
   </section>
 
@@ -50,31 +50,33 @@
       <div class="split split--sidebar">
 
         <div class="prose" data-reveal>
-          <!-- ▼ REWRITE THIS IN YOUR OWN WORDS. It's the part people actually
-                 read before they email you. Keep it short and specific. -->
-          <p class="lede" style="margin-bottom:1.5rem">
+          <!-- ▼ Edit this in the editor's Text tab (About → Bio), or in
+                 assets/js/content.js. It's the part people actually read
+                 before they email you. Keep it short and specific. -->
+          <p class="lede" style="margin-bottom:1.5rem" data-text="aboutLede">
             I'm a photographer working mainly at festivals and live shows.
           </p>
-          <p>
-            I started out shooting <strong>portraits, weddings and food</strong> —
-            which is where most of this portfolio still comes from — and those
-            years taught me how to work quickly in rooms I don't control. That
-            turned out to be exactly the skill festivals demand.
-          </p>
-          <p>
-            Now most of my year is built around them. I like the whole day, not
-            just the headline slot: the load-in, the crowd forming, the side
-            tent nobody's covering, the three songs in the pit, the walk-off.
-          </p>
-          <p>
-            I shoot available light almost exclusively. No flash in the pit, no
-            staging the crowd. If a frame looks like it happened, it's because
-            it did.
-          </p>
-          <p>
-            Based in <strong>[your city]</strong>, travelling for anything worth
-            travelling for.
-          </p>
+          <div data-text-body="aboutBody">
+            <p>
+              I started out shooting portraits, weddings and food — which is
+              where most of this portfolio still comes from — and those years
+              taught me how to work quickly in rooms I don't control. That
+              turned out to be exactly the skill festivals demand.
+            </p>
+            <p>
+              Now most of my year is built around them. I like the whole day, not
+              just the headline slot: the load-in, the crowd forming, the side
+              tent nobody's covering, the three songs in the pit, the walk-off.
+            </p>
+            <p>
+              I shoot available light almost exclusively. No flash in the pit, no
+              staging the crowd. If a frame looks like it happened, it's because
+              it did.
+            </p>
+            <p>
+              Based in [your city], travelling for anything worth travelling for.
+            </p>
+          </div>
         </div>
 
         <div data-reveal style="--i:1">
@@ -83,20 +85,20 @@
 
           <dl class="facts">
             <div class="facts__row">
-              <dt>Gear</dt>
-              <dd>List your bodies and fast primes here</dd>
+              <dt data-text="aboutFact1Label">Gear</dt>
+              <dd data-text="aboutFact1Value">List your bodies and fast primes here</dd>
             </div>
             <div class="facts__row">
-              <dt>Delivery</dt>
-              <dd>Same-night selects, full gallery in 72 hours</dd>
+              <dt data-text="aboutFact2Label">Delivery</dt>
+              <dd data-text="aboutFact2Value">Same-night selects, full gallery in 72 hours</dd>
             </div>
             <div class="facts__row">
-              <dt>Licensing</dt>
-              <dd>Editorial and commercial, quoted per use</dd>
+              <dt data-text="aboutFact3Label">Licensing</dt>
+              <dd data-text="aboutFact3Value">Editorial and commercial, quoted per use</dd>
             </div>
             <div class="facts__row">
-              <dt>Insured</dt>
-              <dd>Public liability — add your details</dd>
+              <dt data-text="aboutFact4Label">Insured</dt>
+              <dd data-text="aboutFact4Value">Public liability — add your details</dd>
             </div>
           </dl>
         </div>
@@ -111,29 +113,29 @@
       <div class="split">
 
         <div data-reveal>
-          <span class="eyebrow eyebrow--accent">Contact</span>
-          <h2 class="display-lg" style="margin:1rem 0 1.5rem">Let's<br>talk</h2>
-          <p class="lede" style="margin-bottom:2rem">
+          <span class="eyebrow eyebrow--accent" data-text="contactEyebrow">Contact</span>
+          <h2 class="display-lg" style="margin:1rem 0 1.5rem" data-text-lines="contactTitle">Let's<br>talk</h2>
+          <p class="lede" style="margin-bottom:2rem" data-text="contactLede">
             Email is best. Include the dates, the location and what you need —
             pit access, full-day coverage, portraits, licensing.
           </p>
 
           <p style="margin-bottom:2rem">
-            <a class="mail-link" href="mailto:hello@example.com">hello@example.com</a>
+            <a class="mail-link" data-text-mail="email" href="mailto:hello@example.com">hello@example.com</a>
           </p>
 
           <dl class="facts">
             <div class="facts__row">
               <dt>Instagram</dt>
-              <dd><a href="https://instagram.com/" rel="me noopener" target="_blank" style="border-bottom:1px solid var(--line)">@yourhandle</a></dd>
+              <dd><a href="https://instagram.com/" rel="me noopener" target="_blank" style="border-bottom:1px solid var(--line)" data-text="instagramHandle">@yourhandle</a></dd>
             </div>
             <div class="facts__row">
-              <dt>Phone</dt>
-              <dd>Add a number, or delete this row</dd>
+              <dt data-text="contactFact1Label">Phone</dt>
+              <dd data-text="contactFact1Value">Add a number, or delete this row</dd>
             </div>
             <div class="facts__row">
-              <dt>Response</dt>
-              <dd>Within 24 hours, usually sooner</dd>
+              <dt data-text="contactFact2Label">Response</dt>
+              <dd data-text="contactFact2Value">Within 24 hours, usually sooner</dd>
             </div>
           </dl>
         </div>
@@ -201,23 +203,24 @@
     <div class="footer__grid">
       <div>
         <p class="footer__brand">Kevin Quan<i>.</i></p>
-        <p class="muted" style="font-size:0.85rem">Festival &amp; live music photography</p>
+        <p class="muted" style="font-size:0.85rem" data-text="tagline">Festival &amp; live music photography</p>
       </div>
       <nav class="footer__nav" aria-label="Footer">
         <a href="festivals.html">Festivals</a>
         <a href="work.html">Other Work</a>
         <a href="about.html">About</a>
         <a href="#contact">Contact</a>
-        <a href="https://instagram.com/" rel="me noopener" target="_blank">Instagram</a>
+        <a href="https://instagram.com/" data-text-href="instagramUrl" rel="me noopener" target="_blank">Instagram</a>
       </nav>
     </div>
     <div class="footer__bottom">
       <span>© <span data-year>2026</span> Kevin Quan. All rights reserved.</span>
-      <span>All photographs are my own work.</span>
+      <span data-text="footerNote">All photographs are my own work.</span>
     </div>
   </div>
 </footer>
 
+<script src="assets/js/content.js"></script>
 <script src="assets/js/photos.js"></script>
 <script src="assets/js/site.js"></script>
 </body>
