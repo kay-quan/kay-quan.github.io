@@ -116,9 +116,9 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
 .chip button{color:var(--faint);font-size:1rem;line-height:1;padding:0 .15rem}
 .chip button:hover{color:var(--bad)}
 
-.toast{position:fixed;left:50%;bottom:1.4rem;transform:translateX(-50%) translateY(150%);
+.toast{position:fixed;left:50%;bottom:1.4rem;transform:translateX(-50%) translateY(150%);white-space:pre-line;line-height:1.5;
        background:var(--surface2);border:1px solid var(--line);border-radius:8px;
-       padding:.68rem 1.05rem;font-size:.85rem;z-index:100;max-width:90vw;transition:transform .3s}
+       padding:.8rem 1.15rem;font-size:.85rem;z-index:100;max-width:min(90vw,480px);transition:transform .3s}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .toast.ok{border-color:var(--ok)} .toast.bad{border-color:var(--bad)} .toast.warn{border-color:var(--warn)}
 
@@ -389,7 +389,9 @@ function toast(msg, kind) {
   t.textContent = msg;
   t.className = "toast show " + (kind || "");
   clearTimeout(toast._t);
-  toast._t = setTimeout(() => { t.className = "toast " + (kind || ""); }, 4600);
+  // Long explanations need long enough to read.
+  const dwell = Math.min(20000, 4600 + msg.length * 45);
+  toast._t = setTimeout(() => { t.className = "toast " + (kind || ""); }, dwell);
 }
 function markDirty() { dirty = true; $("#saveBtn").disabled = false; }
 function setStatus(text, on) { $("#statusText").textContent = text; $("#dot").classList.toggle("on", !!on); }
@@ -514,12 +516,40 @@ function GitHubBackend(repo, token) {
     if (!res.ok) {
       let detail = "";
       try { detail = (await res.json()).message || ""; } catch {}
-      const err = new Error(
-        res.status === 401 ? "Token rejected — it may have expired. Sign out and make a new one."
-      : res.status === 403 ? "Token lacks permission. It needs Contents: Read and write on this repo."
-      : res.status === 404 ? "Repo not found, or the token can't see it: " + repo
-      : (detail || ("GitHub error " + res.status)));
+
+      let msg;
+      if (res.status === 401) {
+        msg = "Token rejected — it has expired or been revoked. Sign out and make a new one.";
+      } else if (res.status === 403) {
+        // Rate limiting also returns 403, so check before blaming permissions.
+        const remaining = res.headers.get("x-ratelimit-remaining");
+        if (remaining === "0") {
+          const reset = Number(res.headers.get("x-ratelimit-reset")) * 1000;
+          const mins = Math.max(1, Math.ceil((reset - Date.now()) / 60000));
+          msg = "GitHub rate limit reached. Try again in about " + mins + " minute" +
+                (mins === 1 ? "" : "s") + ".";
+        } else {
+          msg = "Your token can read this repo but not write to it. Two things to check " +
+                "at github.com/settings/personal-access-tokens — open the token and edit it:\n\n" +
+                "1. Repository access must be “Only select repositories” with " +
+                repo.split("/")[1] + " ticked. If it says “Public Repositories”, " +
+                "that option is read-only and cannot be given write access.\n\n" +
+                "2. Permissions → Repository permissions → Contents must be " +
+                "“Read and write”, not “Read-only”.";
+        }
+      } else if (res.status === 404) {
+        msg = "Repo not found, or this token isn't allowed to see it: " + repo;
+      } else if (res.status === 409) {
+        msg = "The repo changed on GitHub since this page loaded. Reload the editor " +
+              "and redo this change, so nothing gets overwritten.";
+      } else {
+        msg = "GitHub error " + res.status + (detail ? ": " + detail : "");
+      }
+
+      // Always keep GitHub's own wording available; it is often more specific.
+      const err = new Error(msg);
       err.status = res.status;
+      err.githubMessage = detail;
       throw err;
     }
     return res.status === 204 ? null : res.json();
@@ -529,10 +559,23 @@ function GitHubBackend(repo, token) {
     kind: "remote",
     label: owner + "/" + name,
 
-    async verify() {
+    async verify(checkWrite) {
       // Repo access is the check that actually matters. Do it first, and make
       // it the thing that reports failure.
       await api("/repos/" + owner + "/" + name);
+
+      // Reading a repo needs far less permission than writing to one, so a
+      // read-only token sails through sign-in and only fails hours later at
+      // the moment of publishing. Prove write access up front instead.
+      //
+      // Creating a blob is the least invasive write the API offers: a loose
+      // object nothing references, invisible in history and in the file list,
+      // and garbage-collected by GitHub. Only done on an explicit sign-in.
+      if (checkWrite) {
+        await api("/repos/" + owner + "/" + name + "/git/blobs", "POST",
+                  { content: "editor write check", encoding: "utf-8" });
+      }
+
       // The identity lookup is only for the friendly "signed in as" label. A
       // token scoped narrowly enough may not be allowed to call it, which
       // must not block sign-in.
@@ -1183,7 +1226,7 @@ async function signIn() {
 
   const be = GitHubBackend(repo, token);
   try {
-    const login = await be.verify();
+    const login = await be.verify(true);   // true = also prove write access
     backend = be;
     localStorage.setItem(LS_TOKEN, token);
     localStorage.setItem(LS_REPO, repo);
