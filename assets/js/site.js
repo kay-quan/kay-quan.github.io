@@ -126,9 +126,44 @@
       var v = TEXT[el.dataset.textHref];
       if (typeof v === "string" && v) el.setAttribute("href", v);
     });
+
+    /* Repeatable rows. Runs last so it wins over any per-key markup left
+       inside the list from before these became editable lists. */
+    $$("[data-text-list]").forEach(function (el) {
+      var rows = TEXT[el.dataset.textList];
+      if (!Array.isArray(rows)) return;   // absent: leave the HTML alone
+      el.innerHTML = "";
+      rows.forEach(function (row) {
+        if (!row || (!row.label && !row.value)) return;
+        var wrap = document.createElement("div");
+        wrap.className = "facts__row";
+        var dt = document.createElement("dt");
+        dt.textContent = row.label || "";
+        var dd = document.createElement("dd");
+        dd.textContent = row.value || "";
+        wrap.appendChild(dt);
+        wrap.appendChild(dd);
+        el.appendChild(wrap);
+      });
+    });
+  }
+
+  /* ======================================================================
+     VISIBILITY  —  optional blocks switched off in content.js
+
+     Absent or true means shown, so a block that predates its switch never
+     vanishes by accident. Only an explicit false removes anything.
+     ====================================================================== */
+
+  function applyVisibility() {
+    var SHOW = window.SHOW || {};
+    $$("[data-show]").forEach(function (el) {
+      if (SHOW[el.dataset.show] === false) el.remove();
+    });
   }
 
   applyText();
+  applyVisibility();
 
   /* ======================================================================
      NAV

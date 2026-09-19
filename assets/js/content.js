@@ -41,17 +41,15 @@ window.TEXT = {
   approachTitle: "Fast,\nunlit,\nclose",
   approachBody: "Festival light changes every eight seconds and nobody is going to wait for you. I shoot fast, I don't add light, and I get close enough that the frame feels like the room felt.\n\nPit access, backstage, crowd, site — I cover the whole day, not just the headliner. Galleries turn around quickly because a festival photo is worth the most the morning after.",
 
-  /* --- Homepage — the facts list --- */
-  homeFact1Label: "Based",
-  homeFact1Value: "Add your city here",
-  homeFact2Label: "Travel",
-  homeFact2Value: "Anywhere there's a stage",
-  homeFact3Label: "Turnaround",
-  homeFact3Value: "Same-night selects, full gallery in 72 hours",
-  homeFact4Label: "Covers",
-  homeFact4Value: "Festivals, clubs, tours, press, portraits, weddings, food",
-  homeFact5Label: "Clients",
-  homeFact5Value: "Add promoters, venues and publications here",
+  /* --- Homepage — the facts list ---
+     A list, so you can add rows, delete rows and reorder them. */
+  homeFacts: [
+    { label: "Based",      value: "Add your city here" },
+    { label: "Travel",     value: "Anywhere there's a stage" },
+    { label: "Turnaround", value: "Same-night selects, full gallery in 72 hours" },
+    { label: "Covers",     value: "Festivals, clubs, tours, press, portraits, weddings, food" },
+    { label: "Clients",    value: "Add promoters, venues and publications here" }
+  ],
 
   /* --- Homepage — closing pitch --- */
   ctaEyebrow: "Bookings open",
@@ -77,21 +75,46 @@ window.TEXT = {
   aboutTitle: "About",
   aboutLede: "I'm a photographer working mainly at festivals and live shows.",
   aboutBody: "I started out shooting portraits, weddings and food — which is where most of this portfolio still comes from — and those years taught me how to work quickly in rooms I don't control. That turned out to be exactly the skill festivals demand.\n\nNow most of my year is built around them. I like the whole day, not just the headline slot: the load-in, the crowd forming, the side tent nobody's covering, the three songs in the pit, the walk-off.\n\nI shoot available light almost exclusively. No flash in the pit, no staging the crowd. If a frame looks like it happened, it's because it did.\n\nBased in [your city], travelling for anything worth travelling for.",
-  aboutFact1Label: "Gear",
-  aboutFact1Value: "List your bodies and fast primes here",
-  aboutFact2Label: "Delivery",
-  aboutFact2Value: "Same-night selects, full gallery in 72 hours",
-  aboutFact3Label: "Licensing",
-  aboutFact3Value: "Editorial and commercial, quoted per use",
-  aboutFact4Label: "Insured",
-  aboutFact4Value: "Public liability — add your details",
+  aboutFacts: [
+    { label: "Gear",      value: "List your bodies and fast primes here" },
+    { label: "Delivery",  value: "Same-night selects, full gallery in 72 hours" },
+    { label: "Licensing", value: "Editorial and commercial, quoted per use" },
+    { label: "Insured",   value: "Public liability — add your details" }
+  ],
 
   /* --- Contact section --- */
   contactEyebrow: "Contact",
   contactTitle: "Let's\ntalk",
   contactLede: "Email is best. Include the dates, the location and what you need — pit access, full-day coverage, portraits, licensing.",
-  contactFact1Label: "Phone",
-  contactFact1Value: "Add a number, or delete this row",
-  contactFact2Label: "Response",
-  contactFact2Value: "Within 24 hours, usually sooner"
+  contactFacts: [
+    { label: "Phone",    value: "Add a number, or delete this row" },
+    { label: "Response", value: "Within 24 hours, usually sooner" }
+  ]
+};
+
+/* ----------------------------------------------------------------------------
+   WHAT APPEARS ON THE SITE
+
+   Switches for the optional blocks. Set one to false and that part is removed
+   from the page entirely — useful if you stop taking a kind of work, or a
+   section is just empty for now.
+
+   Anything not listed here is always shown, so leaving a key out is safe.
+   Edit these in the editor under Text -> What appears on the site.
+---------------------------------------------------------------------------- */
+window.SHOW = {
+  marquee:       true,   // scrolling festival names on the homepage
+  approach:      true,   // the "How I work" block
+  homeFacts:     true,   // the facts list beside it
+  homeCta:       true,   // the closing "Shooting a festival?" block
+
+  catClubs:      true,   // Clubs - homepage card and Other Work section
+  catPortraits:  true,
+  catWeddings:   true,
+  catFood:       true,
+
+  aboutPortrait: true,   // the photo of you on the About page
+  aboutFacts:    true,   // Gear / Delivery / Licensing / Insured
+  contactFacts:  true,   // Phone / Response
+  contactForm:   true    // the enquiry form (needs Formspree to actually send)
 };

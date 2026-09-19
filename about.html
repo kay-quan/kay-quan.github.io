@@ -81,9 +81,9 @@
 
         <div data-reveal style="--i:1">
           <!-- Optional portrait of you. Drop a file at this path and it appears. -->
-          <div class="split__media" data-card-media="portraits"></div>
+          <div class="split__media" data-card-media="portraits" data-show="aboutPortrait"></div>
 
-          <dl class="facts">
+          <dl class="facts" data-text-list="aboutFacts" data-show="aboutFacts">
             <div class="facts__row">
               <dt data-text="aboutFact1Label">Gear</dt>
               <dd data-text="aboutFact1Value">List your bodies and fast primes here</dd>
@@ -124,18 +124,24 @@
             <a class="mail-link" data-text-mail="email" href="mailto:hello@example.com">hello@example.com</a>
           </p>
 
+          <!-- Instagram sits in its own list because its value is a link, and
+               the editable rows below replace their list's contents wholesale. -->
           <dl class="facts">
             <div class="facts__row">
               <dt>Instagram</dt>
-              <dd><a href="https://instagram.com/" rel="me noopener" target="_blank" style="border-bottom:1px solid var(--line)" data-text="instagramHandle">@yourhandle</a></dd>
+              <dd><a href="https://instagram.com/" data-text-href="instagramUrl" rel="me noopener" target="_blank" style="border-bottom:1px solid var(--line)" data-text="instagramHandle">@yourhandle</a></dd>
+            </div>
+          </dl>
+
+          <dl class="facts" data-text-list="contactFacts" data-show="contactFacts"
+              style="margin-top:0; border-top:0">
+            <div class="facts__row">
+              <dt>Phone</dt>
+              <dd>Add a number, or delete this row</dd>
             </div>
             <div class="facts__row">
-              <dt data-text="contactFact1Label">Phone</dt>
-              <dd data-text="contactFact1Value">Add a number, or delete this row</dd>
-            </div>
-            <div class="facts__row">
-              <dt data-text="contactFact2Label">Response</dt>
-              <dd data-text="contactFact2Value">Within 24 hours, usually sooner</dd>
+              <dt>Response</dt>
+              <dd>Within 24 hours, usually sooner</dd>
             </div>
           </dl>
         </div>
@@ -154,7 +160,7 @@
              rather not bother, delete this whole <div> — the email address
              on the left is enough for most photographers.
         =================================================================== -->
-        <div data-reveal style="--i:1">
+        <div data-reveal style="--i:1" data-show="contactForm">
           <form class="form" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
             <div class="field">
               <label for="name">Your name</label>

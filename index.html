@@ -79,7 +79,7 @@
   </section>
 
   <!-- ===================== MARQUEE ===================== -->
-  <div class="marquee">
+  <div class="marquee" data-show="marquee">
     <div class="marquee__track" data-marquee></div>
   </div>
 
@@ -121,7 +121,7 @@
       </div>
 
       <div class="cards">
-        <a class="card" href="work.html#clubs" data-reveal style="--i:0">
+        <a class="card" href="work.html#clubs" data-show="catClubs" data-reveal style="--i:0">
           <div class="card__media" data-card-media="clubs"></div>
           <div class="card__body">
             <h3 class="display-md">Clubs</h3>
@@ -129,7 +129,7 @@
           </div>
         </a>
 
-        <a class="card" href="work.html#portraits" data-reveal style="--i:1">
+        <a class="card" href="work.html#portraits" data-show="catPortraits" data-reveal style="--i:1">
           <div class="card__media" data-card-media="portraits"></div>
           <div class="card__body">
             <h3 class="display-md">Portraits</h3>
@@ -137,7 +137,7 @@
           </div>
         </a>
 
-        <a class="card" href="work.html#weddings" data-reveal style="--i:2">
+        <a class="card" href="work.html#weddings" data-show="catWeddings" data-reveal style="--i:2">
           <div class="card__media" data-card-media="weddings"></div>
           <div class="card__body">
             <h3 class="display-md">Weddings</h3>
@@ -145,7 +145,7 @@
           </div>
         </a>
 
-        <a class="card" href="work.html#food" data-reveal style="--i:3">
+        <a class="card" href="work.html#food" data-show="catFood" data-reveal style="--i:3">
           <div class="card__media" data-card-media="food"></div>
           <div class="card__body">
             <h3 class="display-md">Food</h3>
@@ -158,7 +158,7 @@
   </section>
 
   <!-- ===================== APPROACH ===================== -->
-  <section class="section">
+  <section class="section" data-show="approach">
     <div class="wrap">
       <div class="split split--sidebar">
 
@@ -179,8 +179,8 @@
           </div>
         </div>
 
-        <div data-reveal style="--i:1">
-          <dl class="facts">
+        <div data-reveal style="--i:1" data-show="homeFacts">
+          <dl class="facts" data-text-list="homeFacts">
             <div class="facts__row">
               <dt data-text="homeFact1Label">Based</dt>
               <dd data-text="homeFact1Value">Add your city here</dd>
@@ -209,7 +209,7 @@
   </section>
 
   <!-- ===================== CTA ===================== -->
-  <section class="cta">
+  <section class="cta" data-show="homeCta">
     <div class="wrap wrap--narrow">
       <span class="eyebrow eyebrow--accent" data-reveal data-text="ctaEyebrow">Bookings open</span>
       <h2 class="display-lg" style="margin:1.25rem 0 1.5rem; --i:1" data-reveal data-text="ctaTitle">

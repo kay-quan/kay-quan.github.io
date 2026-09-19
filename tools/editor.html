@@ -105,6 +105,18 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
 .card-body{margin-top:.95rem}
 .toolbar{display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap}
 
+/* editable label/value lists */
+.list-wrap{margin-bottom:.4rem}
+.list-label{display:block;font-size:.71rem;text-transform:uppercase;letter-spacing:.1em;
+            color:var(--faint);margin-bottom:.45rem}
+.list-row{display:flex;gap:.4rem;margin-bottom:.4rem;align-items:center}
+.list-row input:first-child{flex:0 0 32%}
+.list-row input{flex:1;min-width:0}
+.list-row .btn{flex:0 0 auto;padding:.38rem .5rem}
+.chk--block{display:flex;align-items:center;gap:.6rem;padding:.42rem 0;
+            border-bottom:1px solid var(--line-soft);color:var(--text);font-size:.87rem}
+.chk--block:last-child{border-bottom:0}
+
 /* a category with nothing in it yet */
 .empty-cat{display:flex;align-items:center;gap:.9rem;flex-wrap:wrap;
            border:1px dashed var(--line);border-radius:9px;padding:.85rem 1rem;
@@ -415,7 +427,8 @@ let backend = null;
 let mode = localStorage.getItem(LS_MODE) || "remote";
 let data = { hero: { src: "", alt: "" }, photos: [], marquee: [] };
 let dirty = false;
-let textData = {};          // contents of content.js
+let textData = {};          // window.TEXT from content.js
+let showData = {};          // window.SHOW from content.js
 const thumbCache = new Map();     // src -> url
 const pendingImages = new Map();  // path -> Blob  (not yet written/committed)
 
@@ -1046,12 +1059,8 @@ const TEXT_GROUPS = [
     ["approachTitle",   "Heading (Enter = new line)", "area"],
     ["approachBody",    "Paragraphs", "big"]
   ]},
-  { title: "Homepage — the facts list", hint: "The short list beside it. Left column, then right column.", fields: [
-    ["homeFact1Label", "Row 1 label", "line"], ["homeFact1Value", "Row 1 value", "line"],
-    ["homeFact2Label", "Row 2 label", "line"], ["homeFact2Value", "Row 2 value", "line"],
-    ["homeFact3Label", "Row 3 label", "line"], ["homeFact3Value", "Row 3 value", "line"],
-    ["homeFact4Label", "Row 4 label", "line"], ["homeFact4Value", "Row 4 value", "line"],
-    ["homeFact5Label", "Row 5 label", "line"], ["homeFact5Value", "Row 5 value", "line"]
+  { title: "Homepage — the facts list", hint: "Add, delete and reorder rows freely.", fields: [
+    ["homeFacts", "Rows", "list"]
   ]},
   { title: "Homepage — closing pitch", fields: [
     ["ctaEyebrow", "Small label", "line"],
@@ -1077,24 +1086,58 @@ const TEXT_GROUPS = [
     ["aboutTitle",   "Page heading", "area"],
     ["aboutLede",    "Opening line", "area"],
     ["aboutBody",    "Bio", "big"],
-    ["aboutFact1Label", "Fact 1 label", "line"], ["aboutFact1Value", "Fact 1 value", "line"],
-    ["aboutFact2Label", "Fact 2 label", "line"], ["aboutFact2Value", "Fact 2 value", "line"],
-    ["aboutFact3Label", "Fact 3 label", "line"], ["aboutFact3Value", "Fact 3 value", "line"],
-    ["aboutFact4Label", "Fact 4 label", "line"], ["aboutFact4Value", "Fact 4 value", "line"]
+    ["aboutFacts",   "Facts list", "list"]
   ]},
   { title: "Contact section", fields: [
     ["contactEyebrow", "Small label", "line"],
     ["contactTitle",   "Heading (Enter = new line)", "area"],
     ["contactLede",    "Sentence underneath", "area"],
-    ["contactFact1Label", "Row 1 label", "line"], ["contactFact1Value", "Row 1 value", "line"],
-    ["contactFact2Label", "Row 2 label", "line"], ["contactFact2Value", "Row 2 value", "line"]
+    ["contactFacts",   "Extra rows", "list"]
   ]}
+];
+
+/* Which optional blocks are on. Rendered as checkboxes in its own group. */
+const SHOW_FIELDS = [
+  ["marquee",       "Festival names ticker (homepage)"],
+  ["approach",      "\u201cHow I work\u201d block (homepage)"],
+  ["homeFacts",     "Facts list (homepage)"],
+  ["homeCta",       "Closing pitch (homepage)"],
+  ["catClubs",      "Clubs \u2014 card and section"],
+  ["catPortraits",  "Portraits \u2014 card and section"],
+  ["catWeddings",   "Weddings \u2014 card and section"],
+  ["catFood",       "Food \u2014 card and section"],
+  ["aboutPortrait", "Photo of you (About page)"],
+  ["aboutFacts",    "Facts list (About page)"],
+  ["contactFacts",  "Extra contact rows"],
+  ["contactForm",   "Enquiry form"]
 ];
 
 function parseContentJs(code) {
   const stub = {};
   new Function("window", code + "\n;")(stub);
-  return stub.TEXT || {};
+  const text = stub.TEXT || {};
+  showData = stub.SHOW || {};
+  migrateFactLists(text);
+  return text;
+}
+
+/* The facts lists began life as numbered keys (homeFact1Label, …) before they
+   became add-and-delete lists. Fold any of those still lying around into the
+   array form, so an older content.js loads without losing anything. */
+function migrateFactLists(t) {
+  [["homeFact", "homeFacts"], ["aboutFact", "aboutFacts"], ["contactFact", "contactFacts"]]
+    .forEach(([prefix, listKey]) => {
+      if (Array.isArray(t[listKey])) return;
+      const rows = [];
+      for (let i = 1; i <= 20; i++) {
+        const l = t[prefix + i + "Label"], v = t[prefix + i + "Value"];
+        if (l == null && v == null) continue;
+        rows.push({ label: l || "", value: v || "" });
+        delete t[prefix + i + "Label"];
+        delete t[prefix + i + "Value"];
+      }
+      if (rows.length) t[listKey] = rows;
+    });
 }
 
 function serializeContent(t) {
@@ -1114,7 +1157,9 @@ function serializeContent(t) {
     L.push("");
     L.push("  /* --- " + g.title + " --- */");
     g.fields.forEach(([key]) => {
-      if (key in t) L.push("  " + key + ": " + JSON.stringify(t[key]) + ",");
+      if (!(key in t)) return;
+      if (Array.isArray(t[key])) L.push(serializeList(key, t[key]));
+      else L.push("  " + key + ": " + JSON.stringify(t[key]) + ",");
     });
   });
   // Anything the editor doesn't know about is preserved rather than dropped.
@@ -1130,6 +1175,31 @@ function serializeContent(t) {
   if (L[last].endsWith(",")) L[last] = L[last].slice(0, -1);
   L.push("};");
   L.push("");
+  L.push("/* --------------------------------------------------------------------------");
+  L.push("   WHAT APPEARS ON THE SITE");
+  L.push("");
+  L.push("   false removes that block from the page. Anything not listed is shown,");
+  L.push("   so leaving a key out is safe.");
+  L.push("   -------------------------------------------------------------------------- */");
+  L.push("window.SHOW = {");
+  SHOW_FIELDS.forEach(([k, label], i) => {
+    const val = showData[k] === false ? "false" : "true";
+    const comma = i < SHOW_FIELDS.length - 1 ? "," : "";
+    L.push("  " + (k + ":").padEnd(16) + val + comma + "   // " + label);
+  });
+  L.push("};");
+  L.push("");
+  return L.join("\n");
+}
+
+function serializeList(key, rows) {
+  const L = ["  " + key + ": ["];
+  rows.forEach((r, i) => {
+    L.push("    { label: " + JSON.stringify(r.label || "") +
+           ", value: " + JSON.stringify(r.value || "") + " }" +
+           (i < rows.length - 1 ? "," : ""));
+  });
+  L.push("  ],");
   return L.join("\n");
 }
 
@@ -1152,12 +1222,128 @@ function seedTextCollapse() {
 }
 
 function setAllTextGroups(open) {
-  TEXT_GROUPS.forEach(g => {
-    if (open) collapsed.delete("text:" + g.title);
-    else collapsed.add("text:" + g.title);
-  });
+  const keys = TEXT_GROUPS.map(g => "text:" + g.title).concat("text:__show");
+  keys.forEach(k => { if (open) collapsed.delete(k); else collapsed.add(k); });
   try { localStorage.setItem(LS_COLLAPSED, JSON.stringify([...collapsed])); } catch {}
   renderText();
+}
+
+/* A list of label/value rows you can add to, delete from and reorder.
+   Only the changed row is re-read on input, so the whole list isn't rebuilt
+   under the cursor while you type. */
+function buildList(key, label) {
+  if (!Array.isArray(textData[key])) textData[key] = [];
+  const rows = textData[key];
+
+  const wrap = document.createElement("div");
+  wrap.className = "list-wrap";
+
+  const head = document.createElement("span");
+  head.className = "list-label";
+  head.textContent = label;
+  wrap.appendChild(head);
+
+  const holder = document.createElement("div");
+  wrap.appendChild(holder);
+
+  function draw() {
+    holder.innerHTML = "";
+    if (!rows.length) {
+      const none = document.createElement("p");
+      none.className = "empty";
+      none.textContent = "No rows. The whole list disappears from the site.";
+      holder.appendChild(none);
+    }
+    rows.forEach((row, i) => {
+      const r = document.createElement("div");
+      r.className = "list-row";
+
+      const l = document.createElement("input");
+      l.type = "text"; l.placeholder = "Label, e.g. Based"; l.value = row.label || "";
+      l.addEventListener("input", () => { row.label = l.value; markDirty(); });
+
+      const v = document.createElement("input");
+      v.type = "text"; v.placeholder = "Value"; v.value = row.value || "";
+      v.addEventListener("input", () => { row.value = v.value; markDirty(); });
+
+      const up = document.createElement("button");
+      up.type = "button"; up.className = "btn btn--sm"; up.textContent = "↑";
+      up.title = "Move up"; up.disabled = i === 0;
+      up.addEventListener("click", () => {
+        rows.splice(i - 1, 0, rows.splice(i, 1)[0]); markDirty(); draw();
+      });
+
+      const dn = document.createElement("button");
+      dn.type = "button"; dn.className = "btn btn--sm"; dn.textContent = "↓";
+      dn.title = "Move down"; dn.disabled = i === rows.length - 1;
+      dn.addEventListener("click", () => {
+        rows.splice(i + 1, 0, rows.splice(i, 1)[0]); markDirty(); draw();
+      });
+
+      const del = document.createElement("button");
+      del.type = "button"; del.className = "btn btn--sm btn--danger"; del.textContent = "×";
+      del.title = "Delete this row";
+      del.addEventListener("click", () => { rows.splice(i, 1); markDirty(); draw(); });
+
+      r.append(l, v, up, dn, del);
+      holder.appendChild(r);
+    });
+  }
+  draw();
+
+  const add = document.createElement("button");
+  add.type = "button"; add.className = "btn btn--sm"; add.textContent = "+ Add row";
+  add.addEventListener("click", () => {
+    rows.push({ label: "", value: "" }); markDirty(); draw();
+    const inputs = holder.querySelectorAll(".list-row input");
+    if (inputs.length) inputs[inputs.length - 2].focus();
+  });
+  wrap.appendChild(add);
+
+  return wrap;
+}
+
+/* The on/off switches for optional blocks. */
+function buildVisibility() {
+  const card = document.createElement("div");
+  card.className = "card";
+
+  const groupKey = "text:__show";
+  const isOpen = !collapsed.has(groupKey);
+
+  const head = document.createElement("button");
+  head.type = "button";
+  head.className = "card-head";
+  head.setAttribute("aria-expanded", String(isOpen));
+  head.innerHTML = '<span class="chev">▾</span>What appears on the site' +
+                   '<span class="n">' + SHOW_FIELDS.length + "</span>";
+
+  const body = document.createElement("div");
+  body.className = "card-body";
+  body.hidden = !isOpen;
+  head.addEventListener("click", () => toggleGroup(groupKey, head, body));
+
+  const hint = document.createElement("p");
+  hint.className = "hint";
+  hint.textContent = "Untick to remove that block from the site completely. " +
+    "Nothing is deleted — your photos and words stay put, so you can switch it back on.";
+  body.appendChild(hint);
+
+  SHOW_FIELDS.forEach(([key, label]) => {
+    const row = document.createElement("label");
+    row.className = "chk chk--block";
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.checked = showData[key] !== false;
+    cb.addEventListener("change", () => { showData[key] = cb.checked; markDirty(); });
+    const span = document.createElement("span");
+    span.textContent = label;
+    row.append(cb, span);
+    body.appendChild(row);
+  });
+
+  card.append(head, body);
+  return card;
 }
 
 function renderText() {
@@ -1175,6 +1361,7 @@ function renderText() {
   collapseBtn.addEventListener("click", () => setAllTextGroups(false));
   bar.append(expandBtn, collapseBtn);
   root.appendChild(bar);
+  root.appendChild(buildVisibility());
 
   TEXT_GROUPS.forEach(g => {
     // Named groupKey, not key, so the per-field destructuring below can't
@@ -1209,6 +1396,8 @@ function renderText() {
     let rowWrap = null;
 
     g.fields.forEach(([key, label, kind], i) => {
+      if (kind === "list") { body.appendChild(buildList(key, label)); return; }
+
       const lab = document.createElement("label");
       lab.className = "f";
       lab.innerHTML = "<span>" + label + "</span>";
@@ -1266,7 +1455,8 @@ function draftDataScript() {
   return "window.HERO=" + safeJSON(hero) + ";" +
          "window.PHOTOS=" + safeJSON(photos) + ";" +
          "window.MARQUEE=" + safeJSON(data.marquee) + ";" +
-         "window.TEXT=" + safeJSON(textData) + ";";
+         "window.TEXT=" + safeJSON(textData) + ";" +
+         "window.SHOW=" + safeJSON(showData) + ";";
 }
 
 async function getShell(page) {
