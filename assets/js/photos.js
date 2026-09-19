@@ -60,4 +60,4 @@ window.PHOTOS = [
 ];
 
 /* The scrolling band of festival names on the homepage. */
-window.MARQUEE = ["Osheaga", "Bonnaroo", "Electric Forest", "Field Day", "Governors Ball", "Primavera Sound", "Lollapalooza", "Pitchfork"];
+window.MARQUEE = ["Tahoe Live", "Countdown"];
