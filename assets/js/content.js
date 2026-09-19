@@ -41,14 +41,13 @@ window.TEXT = {
   approachTitle: "Fast,\nunlit,\nclose",
   approachBody: "Festival light changes every eight seconds and nobody is going to wait for you. I shoot fast, I don't add light, and I get close enough that the frame feels like the room felt.\n\nPit access, backstage, crowd, site — I cover the whole day, not just the headliner. Galleries turn around quickly because a festival photo is worth the most the morning after.",
 
-  /* --- Homepage — the facts list ---
-     A list, so you can add rows, delete rows and reorder them. */
+  /* --- Homepage — the facts list --- */
   homeFacts: [
-    { label: "Based",      value: "Add your city here" },
-    { label: "Travel",     value: "Anywhere there's a stage" },
+    { label: "Based", value: "Add your city here" },
+    { label: "Travel", value: "Anywhere there's a stage" },
     { label: "Turnaround", value: "Same-night selects, full gallery in 72 hours" },
-    { label: "Covers",     value: "Festivals, clubs, tours, press, portraits, weddings, food" },
-    { label: "Clients",    value: "Add promoters, venues and publications here" }
+    { label: "Covers", value: "Festivals, clubs, tours, press, portraits, weddings, food" },
+    { label: "Clients", value: "Add promoters, venues and publications here" }
   ],
 
   /* --- Homepage — closing pitch --- */
@@ -76,10 +75,10 @@ window.TEXT = {
   aboutLede: "I'm a photographer working mainly at festivals and live shows.",
   aboutBody: "I started out shooting portraits, weddings and food — which is where most of this portfolio still comes from — and those years taught me how to work quickly in rooms I don't control. That turned out to be exactly the skill festivals demand.\n\nNow most of my year is built around them. I like the whole day, not just the headline slot: the load-in, the crowd forming, the side tent nobody's covering, the three songs in the pit, the walk-off.\n\nI shoot available light almost exclusively. No flash in the pit, no staging the crowd. If a frame looks like it happened, it's because it did.\n\nBased in [your city], travelling for anything worth travelling for.",
   aboutFacts: [
-    { label: "Gear",      value: "List your bodies and fast primes here" },
-    { label: "Delivery",  value: "Same-night selects, full gallery in 72 hours" },
+    { label: "Gear", value: "List your bodies and fast primes here" },
+    { label: "Delivery", value: "Same-night selects, full gallery in 72 hours" },
     { label: "Licensing", value: "Editorial and commercial, quoted per use" },
-    { label: "Insured",   value: "Public liability — add your details" }
+    { label: "Insured", value: "Public liability — add your details" }
   ],
 
   /* --- Contact section --- */
@@ -87,45 +86,28 @@ window.TEXT = {
   contactTitle: "Let's\ntalk",
   contactLede: "Email is best. Include the dates, the location and what you need — pit access, full-day coverage, portraits, licensing.",
   contactFacts: [
-    { label: "Phone",    value: "Add a number, or delete this row" },
+    { label: "Phone", value: "Add a number, or delete this row" },
     { label: "Response", value: "Within 24 hours, usually sooner" }
   ]
 };
 
-/* ----------------------------------------------------------------------------
+/* --------------------------------------------------------------------------
    WHAT APPEARS ON THE SITE
 
-   Switches for the optional blocks. Set one to false and that part is removed
-   from the page entirely — useful if you stop taking a kind of work, or a
-   section is just empty for now.
-
-   Anything not listed here is always shown, so leaving a key out is safe.
-   Edit these in the editor under Text -> What appears on the site.
----------------------------------------------------------------------------- */
-/* ----------------------------------------------------------------------------
-   CATEGORY ORDER
-
-   The order the non-festival categories appear in: the Other Work page, the
-   homepage cards, and the editor's own list. Drag them in the editor's Photos
-   tab, or just rewrite this line.
-
-   Festivals isn't here — it has its own page and always leads.
----------------------------------------------------------------------------- */
-window.ORDER = ["clubs", "portraits", "weddings", "food"];
-
+   false removes that block from the page. Anything not listed is shown,
+   so leaving a key out is safe.
+   -------------------------------------------------------------------------- */
 window.SHOW = {
-  marquee:       true,   // scrolling festival names on the homepage
-  approach:      true,   // the "How I work" block
-  homeFacts:     true,   // the facts list beside it
-  homeCta:       true,   // the closing "Shooting a festival?" block
-
-  catClubs:      true,   // Clubs - homepage card and Other Work section
-  catPortraits:  true,
-  catWeddings:   true,
-  catFood:       true,
-
-  aboutPortrait: true,   // the photo of you on the About page
-  aboutFacts:    true,   // Gear / Delivery / Licensing / Insured
-  contactFacts:  true,   // Phone / Response
-  contactForm:   true    // the enquiry form (needs Formspree to actually send)
+  marquee:        true,   // Festival names ticker (homepage)
+  approach:       true,   // “How I work” block (homepage)
+  homeFacts:      true,   // Facts list (homepage)
+  homeCta:        true,   // Closing pitch (homepage)
+  catClubs:       true,   // Clubs — card and section
+  catPortraits:   true,   // Portraits — card and section
+  catWeddings:    true,   // Weddings — card and section
+  catFood:        true,   // Food — card and section
+  aboutPortrait:  true,   // Photo of you (About page)
+  aboutFacts:     true,   // Facts list (About page)
+  contactFacts:   true,   // Extra contact rows
+  contactForm:    true   // Enquiry form
 };
