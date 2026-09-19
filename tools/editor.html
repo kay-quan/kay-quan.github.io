@@ -1,0 +1,760 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Site Editor — Kevin Quan</title>
+
+<!-- Not part of the public site. Nothing links to it and search engines skip it. -->
+<meta name="robots" content="noindex, nofollow">
+
+<style>
+/* ---------------------------------------------------------------------------
+   Deliberately self-contained — this tool must keep working even if the site's
+   stylesheet is mid-edit or broken.
+--------------------------------------------------------------------------- */
+:root{
+  --bg:#0a0a0c; --bg2:#121216; --surface:#17171c; --surface2:#1f1f26;
+  --line:rgba(255,255,255,.12); --line-soft:rgba(255,255,255,.07);
+  --text:#f4f3f1; --dim:#a3a3aa; --faint:#6b6b73;
+  --accent:#ff5f3d; --ok:#3ddc84; --warn:#ffc53d; --bad:#ff5470;
+  --mono:ui-monospace,"Cascadia Mono",Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box}
+*{margin:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input,select,textarea{font:inherit}
+img{display:block;max-width:100%}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.bar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;
+     padding:.85rem 1.25rem;background:rgba(10,10,12,.92);backdrop-filter:blur(12px);
+     border-bottom:1px solid var(--line-soft)}
+.bar h1{font-size:1rem;font-weight:700;letter-spacing:-.01em;white-space:nowrap}
+.bar h1 i{color:var(--accent);font-style:normal}
+.bar .spacer{flex:1}
+
+.btn{display:inline-flex;align-items:center;gap:.5rem;padding:.55rem 1rem;border:1px solid var(--line);
+     border-radius:7px;font-size:.85rem;font-weight:600;transition:.18s}
+.btn:hover:not(:disabled){background:var(--surface2);border-color:var(--dim)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn--primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn--primary:hover:not(:disabled){filter:brightness(1.12);background:var(--accent);border-color:var(--accent)}
+.btn--sm{padding:.3rem .6rem;font-size:.75rem;border-radius:5px}
+.btn--danger:hover:not(:disabled){background:var(--bad);border-color:var(--bad);color:#fff}
+
+.dot{width:8px;height:8px;border-radius:50%;background:var(--faint);flex:none}
+.dot.on{background:var(--ok)}
+.status{font-size:.8rem;color:var(--dim);display:flex;align-items:center;gap:.5rem}
+
+.wrap{max-width:1080px;margin:0 auto;padding:1.5rem 1.25rem 6rem}
+
+.tabs{display:flex;gap:.35rem;margin-bottom:1.5rem;border-bottom:1px solid var(--line-soft)}
+.tab{padding:.6rem 1rem;font-size:.85rem;font-weight:600;color:var(--dim);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab[aria-selected="true"]{color:var(--text);border-bottom-color:var(--accent)}
+
+.panel[hidden]{display:none}
+
+.card{background:var(--surface);border:1px solid var(--line-soft);border-radius:10px;padding:1.15rem;margin-bottom:1rem}
+.card h2{font-size:.95rem;font-weight:700;margin-bottom:.3rem}
+.card .hint{font-size:.8rem;color:var(--faint);margin-bottom:1rem}
+
+label.f{display:block;margin-bottom:.9rem}
+label.f > span{display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);margin-bottom:.35rem}
+input[type=text],input[type=number],select,textarea{
+  width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);
+  border-radius:6px;padding:.5rem .65rem;font-size:.88rem}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
+.row{display:flex;gap:.75rem;flex-wrap:wrap}
+.row > *{flex:1;min-width:150px}
+
+/* drop zone */
+.drop{border:2px dashed var(--line);border-radius:10px;padding:2rem 1rem;text-align:center;
+      color:var(--dim);font-size:.9rem;transition:.18s;cursor:pointer}
+.drop:hover,.drop.over{border-color:var(--accent);background:rgba(255,95,61,.06);color:var(--text)}
+
+/* photo rows */
+.group{margin-bottom:1.75rem}
+.group > h3{font-size:.75rem;text-transform:uppercase;letter-spacing:.14em;color:var(--faint);
+            margin-bottom:.6rem;display:flex;align-items:center;gap:.6rem}
+.group > h3::after{content:"";flex:1;height:1px;background:var(--line-soft)}
+
+.item{display:grid;grid-template-columns:76px 1fr auto;gap:.85rem;align-items:start;
+      background:var(--surface);border:1px solid var(--line-soft);border-radius:9px;
+      padding:.7rem;margin-bottom:.5rem}
+.item.missing{border-color:rgba(255,197,61,.35)}
+.thumb{width:76px;height:76px;border-radius:6px;object-fit:cover;background:var(--surface2);
+       display:grid;place-content:center;font-size:.6rem;color:var(--faint);text-align:center;overflow:hidden}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.fields{display:grid;gap:.45rem}
+.fields .row{gap:.45rem}
+.meta{font-family:var(--mono);font-size:.68rem;color:var(--faint);word-break:break-all}
+.ctrls{display:flex;flex-direction:column;gap:.3rem;align-items:flex-end}
+.chk{display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:var(--dim);white-space:nowrap}
+.chk input{accent-color:var(--accent);width:15px;height:15px}
+
+/* marquee chips */
+.chips{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.85rem}
+.chip{display:inline-flex;align-items:center;gap:.45rem;background:var(--surface2);
+      border:1px solid var(--line);border-radius:999px;padding:.3rem .5rem .3rem .8rem;font-size:.82rem}
+.chip button{color:var(--faint);font-size:1rem;line-height:1;padding:0 .15rem}
+.chip button:hover{color:var(--bad)}
+
+.toast{position:fixed;left:50%;bottom:1.5rem;transform:translateX(-50%) translateY(150%);
+       background:var(--surface2);border:1px solid var(--line);border-radius:8px;
+       padding:.7rem 1.1rem;font-size:.85rem;z-index:100;transition:transform .3s;max-width:90vw}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.ok{border-color:var(--ok)} .toast.bad{border-color:var(--bad)}
+
+.note{border-left:2px solid var(--accent);padding:.6rem 0 .6rem .9rem;font-size:.85rem;color:var(--dim);margin-bottom:1.25rem}
+.note b{color:var(--text)}
+.unsupported{max-width:620px;margin:5rem auto;padding:0 1.25rem;text-align:center}
+.unsupported h1{font-size:1.4rem;margin-bottom:.75rem}
+.unsupported p{color:var(--dim);margin-bottom:1rem}
+code{font-family:var(--mono);font-size:.85em;background:var(--surface2);padding:.1em .35em;border-radius:4px}
+.empty{color:var(--faint);font-size:.85rem;padding:1rem 0}
+</style>
+</head>
+<body>
+
+<!-- Shown only when the browser can't do this -->
+<div id="unsupported" class="unsupported" hidden>
+  <h1>This needs Chrome or Edge</h1>
+  <p>The editor writes directly to the files on your computer, which only
+     Chrome and Edge can do. Firefox and Safari don't support it yet.</p>
+  <p>Open this same page in Edge — it's already on your machine.</p>
+</div>
+
+<div id="app" hidden>
+
+  <header class="bar">
+    <h1>Site Editor<i>.</i></h1>
+    <span class="status"><span class="dot" id="dot"></span><span id="statusText">Not connected</span></span>
+    <span class="spacer"></span>
+    <button class="btn" id="connectBtn">Choose site folder</button>
+    <button class="btn btn--primary" id="saveBtn" disabled>Save changes</button>
+  </header>
+
+  <div class="wrap">
+
+    <div class="note" id="introNote">
+      <b>How this works.</b> This page edits the files in your site folder on
+      this computer. It can't touch the live site by itself — after saving,
+      open GitHub Desktop and hit Commit then Push to publish.
+    </div>
+
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" aria-selected="true"  data-panel="photos">Photos</button>
+      <button class="tab" role="tab" aria-selected="false" data-panel="home">Homepage</button>
+    </div>
+
+    <!-- ============================ PHOTOS ============================ -->
+    <section class="panel" id="panel-photos" role="tabpanel">
+
+      <div class="card">
+        <h2>Add photos</h2>
+        <p class="hint">Drop full-size exports straight in. They're resized,
+           stripped of EXIF (so your camera's GPS location isn't published),
+           saved into the right folder, and added to the list below.</p>
+
+        <div class="row" style="margin-bottom:.9rem">
+          <label class="f"><span>Put them in</span>
+            <select id="addCategory">
+              <option value="festivals">Festivals</option>
+              <option value="portraits">Portraits</option>
+              <option value="weddings">Weddings</option>
+              <option value="food">Food</option>
+            </select>
+          </label>
+          <label class="f" id="addEventWrap"><span>Festival / event</span>
+            <input type="text" id="addEvent" placeholder="e.g. Osheaga 2025">
+          </label>
+          <label class="f"><span>Max size (px)</span>
+            <input type="number" id="addMaxEdge" value="2400" min="600" max="6000" step="100">
+          </label>
+        </div>
+
+        <div class="drop" id="drop">
+          <strong>Drop photos here</strong><br>or click to choose files
+        </div>
+        <input type="file" id="filePicker" accept="image/*" multiple hidden>
+      </div>
+
+      <div id="photoList"></div>
+    </section>
+
+    <!-- =========================== HOMEPAGE =========================== -->
+    <section class="panel" id="panel-home" role="tabpanel" hidden>
+
+      <div class="card">
+        <h2>Hero image</h2>
+        <p class="hint">The big photo behind your name on the homepage. This one
+           does more for the site than any other single change.</p>
+        <div id="heroThumbWrap" style="margin-bottom:.9rem"></div>
+        <div class="drop" id="heroDrop"><strong>Drop the hero photo here</strong><br>or click to choose</div>
+        <input type="file" id="heroPicker" accept="image/*" hidden>
+        <label class="f" style="margin-top:.9rem"><span>Description (for screen readers)</span>
+          <input type="text" id="heroAlt" placeholder="Crowd lit by stage light at a festival main stage">
+        </label>
+      </div>
+
+      <div class="card">
+        <h2>Festival names ticker</h2>
+        <p class="hint">The scrolling band on the homepage. Only list festivals
+           you've actually shot — it's the fastest credibility signal on the page.</p>
+        <div class="chips" id="marqueeChips"></div>
+        <div class="row">
+          <input type="text" id="marqueeInput" placeholder="Add a festival name and press Enter">
+          <button class="btn btn--sm" id="marqueeAdd" style="flex:0 0 auto">Add</button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+
+/* ===========================================================================
+   Site Editor
+
+   Reads and writes the real files in the site folder using the File System
+   Access API. There is no server and no account: the only thing it can touch
+   is a folder you explicitly hand it, on the machine you're sitting at.
+
+   Data lives in assets/js/photos.js. Rather than regex-parsing that file we
+   execute it against a stub `window` and read back what it assigned — so any
+   hand-edit that is valid JavaScript parses correctly.
+   =========================================================================== */
+
+const $  = (s, r) => (r || document).querySelector(s);
+const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+
+const CATEGORIES = ["festivals", "portraits", "weddings", "food"];
+
+let dirHandle = null;     // site root
+let data = { hero: { src: "", alt: "" }, photos: [], marquee: [] };
+let dirty = false;
+const thumbCache = new Map();
+
+/* --- capability gate ---------------------------------------------------- */
+if (!window.showDirectoryPicker) {
+  $("#unsupported").hidden = false;
+} else {
+  $("#app").hidden = false;
+  init();
+}
+
+/* --- tiny helpers ------------------------------------------------------- */
+function toast(msg, kind) {
+  const t = $("#toast");
+  t.textContent = msg;
+  t.className = "toast show " + (kind || "");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => { t.className = "toast " + (kind || ""); }, 3800);
+}
+
+function markDirty() {
+  dirty = true;
+  $("#saveBtn").disabled = false;
+}
+
+function setStatus(text, connected) {
+  $("#statusText").textContent = text;
+  $("#dot").classList.toggle("on", !!connected);
+}
+
+/* Filename-safe, lowercase, always .jpg */
+function slugify(name) {
+  const base = name.replace(/\.[^.]+$/, "");
+  const s = base.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  return (s || "photo") + ".jpg";
+}
+
+/* ===========================================================================
+   Reading and writing photos.js
+   =========================================================================== */
+
+async function getFileHandle(path, create) {
+  const parts = path.split("/");
+  let dir = dirHandle;
+  for (let i = 0; i < parts.length - 1; i++) {
+    dir = await dir.getDirectoryHandle(parts[i], { create: !!create });
+  }
+  return dir.getFileHandle(parts[parts.length - 1], { create: !!create });
+}
+
+function parsePhotosJs(code) {
+  const stub = {};
+  // Runs the file's assignments against a fake window and captures them.
+  new Function("window", code + "\n;")(stub);
+  return {
+    hero:    stub.HERO    || { src: "assets/img/hero/hero.jpg", alt: "" },
+    photos:  Array.isArray(stub.PHOTOS)  ? stub.PHOTOS  : [],
+    marquee: Array.isArray(stub.MARQUEE) ? stub.MARQUEE : []
+  };
+}
+
+const q = s => JSON.stringify(String(s == null ? "" : s));
+
+function serialize(d) {
+  const lines = [];
+  lines.push("/* ==========================================================================");
+  lines.push("   PHOTOS.JS — the content of the site.");
+  lines.push("");
+  lines.push("   Easiest way to edit this is tools/editor.html, which writes this file");
+  lines.push("   for you. Hand-editing is fine too — keep the same shape and it will");
+  lines.push("   still load correctly in the editor.");
+  lines.push("");
+  lines.push("   w and h are the image's pixel dimensions. They reserve the right shape");
+  lines.push("   before the photo downloads, so the gallery never jumps while loading.");
+  lines.push("   ========================================================================== */");
+  lines.push("");
+  lines.push("window.HERO = {");
+  lines.push("  src: " + q(d.hero.src) + ",");
+  lines.push("  alt: " + q(d.hero.alt));
+  lines.push("};");
+  lines.push("");
+  lines.push("window.PHOTOS = [");
+
+  CATEGORIES.forEach(cat => {
+    const set = d.photos.filter(p => p.category === cat);
+    if (!set.length) return;
+    lines.push("");
+    lines.push("  /* --- " + cat.toUpperCase() + " --- */");
+    set.forEach(p => {
+      const bits = [
+        "src: " + q(p.src),
+        "w: " + (p.w | 0),
+        "h: " + (p.h | 0),
+        "title: " + q(p.title)
+      ];
+      if (p.event)    bits.push("event: " + q(p.event));
+      bits.push("category: " + q(p.category));
+      if (p.featured) bits.push("featured: true");
+      lines.push("  { " + bits.join(", ") + " },");
+    });
+  });
+
+  lines.push("");
+  lines.push("];");
+  lines.push("");
+  lines.push("/* The scrolling band of festival names on the homepage. */");
+  lines.push("window.MARQUEE = [" + d.marquee.map(q).join(", ") + "];");
+  lines.push("");
+  return lines.join("\n");
+}
+
+async function load() {
+  const fh = await getFileHandle("assets/js/photos.js");
+  const text = await (await fh.getFile()).text();
+  data = parsePhotosJs(text);
+  $("#heroAlt").value = data.hero.alt || "";
+  renderAll();
+}
+
+async function save() {
+  try {
+    const fh = await getFileHandle("assets/js/photos.js", true);
+    const w = await fh.createWritable();
+    await w.write(serialize(data));
+    await w.close();
+    dirty = false;
+    $("#saveBtn").disabled = true;
+    toast("Saved. Now open GitHub Desktop → Commit → Push to put it live.", "ok");
+  } catch (err) {
+    toast("Could not save: " + err.message, "bad");
+  }
+}
+
+/* ===========================================================================
+   Connecting to the folder
+   =========================================================================== */
+
+async function connect() {
+  try {
+    const handle = await window.showDirectoryPicker({ mode: "readwrite", id: "site-root" });
+
+    // Make sure it's actually the site folder, not some random directory.
+    try {
+      const js = await handle.getDirectoryHandle("assets");
+      await (await js.getDirectoryHandle("js")).getFileHandle("photos.js");
+    } catch {
+      toast("That doesn't look like the site folder — pick the one containing index.html.", "bad");
+      return;
+    }
+
+    dirHandle = handle;
+    await saveHandle(handle);
+    setStatus(handle.name, true);
+    $("#introNote").innerHTML =
+      "<b>Connected to " + handle.name + ".</b> Changes here write to the files on " +
+      "this computer. After saving, open GitHub Desktop and hit Commit then Push to publish.";
+    await load();
+    toast("Connected.", "ok");
+  } catch (err) {
+    if (err && err.name === "AbortError") return;   // user cancelled
+    toast("Could not open folder: " + err.message, "bad");
+  }
+}
+
+/* Remember the folder between visits so it's one click next time. */
+function idb() {
+  return new Promise((res, rej) => {
+    const r = indexedDB.open("site-editor", 1);
+    r.onupgradeneeded = () => r.result.createObjectStore("kv");
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  });
+}
+async function saveHandle(h) {
+  try {
+    const db = await idb();
+    db.transaction("kv", "readwrite").objectStore("kv").put(h, "dir");
+  } catch {}
+}
+async function loadHandle() {
+  try {
+    const db = await idb();
+    return await new Promise(res => {
+      const rq = db.transaction("kv", "readonly").objectStore("kv").get("dir");
+      rq.onsuccess = () => res(rq.result || null);
+      rq.onerror = () => res(null);
+    });
+  } catch { return null; }
+}
+
+/* ===========================================================================
+   Images — resize, strip metadata, write to disk
+   =========================================================================== */
+
+function readImage(file) {
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => { URL.revokeObjectURL(url); res(img); };
+    img.onerror = () => { URL.revokeObjectURL(url); rej(new Error("not a readable image")); };
+    img.src = url;
+  });
+}
+
+/* Canvas re-encode does two useful things at once: it shrinks the file and it
+   drops every EXIF tag, including GPS coordinates. */
+async function resizeToJpeg(file, maxEdge, quality) {
+  const img = await readImage(file);
+  const scale = Math.min(1, maxEdge / Math.max(img.naturalWidth, img.naturalHeight));
+  const w = Math.round(img.naturalWidth * scale);
+  const h = Math.round(img.naturalHeight * scale);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(img, 0, 0, w, h);
+
+  const blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", quality || 0.82));
+  return { blob, w, h };
+}
+
+async function writeImage(category, filename, blob) {
+  const assets = await dirHandle.getDirectoryHandle("assets");
+  const img = await assets.getDirectoryHandle("img");
+  const dir = await img.getDirectoryHandle(category, { create: true });
+
+  // Don't silently overwrite an existing photo.
+  let name = filename, n = 2;
+  while (await exists(dir, name)) {
+    name = filename.replace(/\.jpg$/, "-" + n + ".jpg");
+    n++;
+  }
+  const fh = await dir.getFileHandle(name, { create: true });
+  const w = await fh.createWritable();
+  await w.write(blob);
+  await w.close();
+  return name;
+}
+
+async function exists(dir, name) {
+  try { await dir.getFileHandle(name); return true; } catch { return false; }
+}
+
+async function addPhotos(files, category, evt, maxEdge) {
+  if (!dirHandle) { toast("Choose your site folder first.", "bad"); return; }
+  let added = 0, failed = 0;
+
+  for (const file of files) {
+    if (!file.type.startsWith("image/")) { failed++; continue; }
+    try {
+      const { blob, w, h } = await resizeToJpeg(file, maxEdge, 0.82);
+      const name = await writeImage(category, slugify(file.name), blob);
+      const entry = {
+        src: "assets/img/" + category + "/" + name,
+        w, h,
+        title: "",
+        category,
+        featured: false
+      };
+      if (category === "festivals" && evt) entry.event = evt;
+      data.photos.push(entry);
+      added++;
+    } catch (err) {
+      console.error(file.name, err);
+      failed++;
+    }
+  }
+
+  if (added) { markDirty(); renderAll(); }
+  toast(
+    added + " photo" + (added === 1 ? "" : "s") + " added" +
+    (failed ? ", " + failed + " skipped" : "") + ". Add captions, then Save.",
+    failed ? "bad" : "ok"
+  );
+}
+
+/* ===========================================================================
+   Rendering
+   =========================================================================== */
+
+async function thumbFor(src, el) {
+  if (thumbCache.has(src)) { el.innerHTML = ""; el.appendChild(imgEl(thumbCache.get(src))); return; }
+  try {
+    const fh = await getFileHandle(src);
+    const url = URL.createObjectURL(await fh.getFile());
+    thumbCache.set(src, url);
+    el.innerHTML = ""; el.appendChild(imgEl(url));
+  } catch {
+    el.textContent = "no file";
+    el.closest(".item") && el.closest(".item").classList.add("missing");
+  }
+}
+function imgEl(url) { const i = new Image(); i.src = url; return i; }
+
+function renderAll() { renderPhotos(); renderHero(); renderMarquee(); }
+
+function renderPhotos() {
+  const root = $("#photoList");
+  root.innerHTML = "";
+
+  if (!data.photos.length) {
+    root.innerHTML = '<p class="empty">No photos yet. Drop some in above.</p>';
+    return;
+  }
+
+  CATEGORIES.forEach(cat => {
+    const set = data.photos.filter(p => p.category === cat);
+    if (!set.length) return;
+
+    const g = document.createElement("div");
+    g.className = "group";
+    g.innerHTML = "<h3>" + cat + " &middot; " + set.length + "</h3>";
+
+    set.forEach(p => {
+      const i = data.photos.indexOf(p);
+      const row = document.createElement("div");
+      row.className = "item";
+
+      const thumb = document.createElement("div");
+      thumb.className = "thumb";
+      thumb.textContent = "…";
+
+      const fields = document.createElement("div");
+      fields.className = "fields";
+      fields.innerHTML =
+        '<input type="text" data-k="title" placeholder="Caption — e.g. Main stage, last song">' +
+        '<div class="row">' +
+          '<input type="text" data-k="event" placeholder="Event (festivals only)">' +
+          '<select data-k="category">' +
+            CATEGORIES.map(c => '<option value="' + c + '">' + c + '</option>').join("") +
+          '</select>' +
+        '</div>' +
+        '<div class="meta">' + p.src + " &middot; " + p.w + "&times;" + p.h + '</div>';
+
+      $('[data-k="title"]', fields).value = p.title || "";
+      $('[data-k="event"]', fields).value = p.event || "";
+      $('[data-k="category"]', fields).value = p.category;
+
+      $$("input,select", fields).forEach(inp => {
+        inp.addEventListener("input", () => {
+          const k = inp.dataset.k;
+          if (k === "category") { p.category = inp.value; markDirty(); renderPhotos(); return; }
+          p[k] = inp.value;
+          markDirty();
+        });
+      });
+
+      const ctrls = document.createElement("div");
+      ctrls.className = "ctrls";
+
+      const feat = document.createElement("label");
+      feat.className = "chk";
+      feat.innerHTML = '<input type="checkbox"> homepage';
+      const cb = $("input", feat);
+      cb.checked = !!p.featured;
+      cb.addEventListener("change", () => { p.featured = cb.checked; markDirty(); });
+
+      const up = document.createElement("button");
+      up.className = "btn btn--sm"; up.textContent = "↑"; up.title = "Move earlier";
+      up.addEventListener("click", () => move(i, -1));
+
+      const dn = document.createElement("button");
+      dn.className = "btn btn--sm"; dn.textContent = "↓"; dn.title = "Move later";
+      dn.addEventListener("click", () => move(i, 1));
+
+      const del = document.createElement("button");
+      del.className = "btn btn--sm btn--danger"; del.textContent = "Remove";
+      del.addEventListener("click", () => {
+        if (!confirm("Remove this photo from the site?\n\n" + p.src +
+                     "\n\nThe image file stays on your computer — this only takes it off the site.")) return;
+        data.photos.splice(i, 1);
+        markDirty(); renderPhotos();
+      });
+
+      ctrls.append(feat, up, dn, del);
+      row.append(thumb, fields, ctrls);
+      g.appendChild(row);
+      thumbFor(p.src, thumb);
+    });
+
+    root.appendChild(g);
+  });
+}
+
+function move(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= data.photos.length) return;
+  const [x] = data.photos.splice(i, 1);
+  data.photos.splice(j, 0, x);
+  markDirty();
+  renderPhotos();
+}
+
+function renderHero() {
+  const wrap = $("#heroThumbWrap");
+  wrap.innerHTML = "";
+  if (!data.hero.src) return;
+  const t = document.createElement("div");
+  t.className = "thumb";
+  t.style.width = "100%";
+  t.style.height = "180px";
+  t.textContent = "…";
+  wrap.appendChild(t);
+  thumbFor(data.hero.src, t);
+}
+
+function renderMarquee() {
+  const box = $("#marqueeChips");
+  box.innerHTML = "";
+  if (!data.marquee.length) { box.innerHTML = '<span class="empty">None yet.</span>'; return; }
+  data.marquee.forEach((name, i) => {
+    const c = document.createElement("span");
+    c.className = "chip";
+    c.textContent = name;
+    const x = document.createElement("button");
+    x.textContent = "×";
+    x.title = "Remove";
+    x.addEventListener("click", () => { data.marquee.splice(i, 1); markDirty(); renderMarquee(); });
+    c.appendChild(x);
+    box.appendChild(c);
+  });
+}
+
+/* ===========================================================================
+   Wiring
+   =========================================================================== */
+
+function wireDrop(zone, onFiles) {
+  zone.addEventListener("dragover", e => { e.preventDefault(); zone.classList.add("over"); });
+  zone.addEventListener("dragleave", () => zone.classList.remove("over"));
+  zone.addEventListener("drop", e => {
+    e.preventDefault();
+    zone.classList.remove("over");
+    onFiles(Array.from(e.dataTransfer.files));
+  });
+}
+
+async function init() {
+  $("#connectBtn").addEventListener("click", connect);
+  $("#saveBtn").addEventListener("click", save);
+
+  $$(".tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      $$(".tab").forEach(t => t.setAttribute("aria-selected", String(t === tab)));
+      $$(".panel").forEach(p => { p.hidden = p.id !== "panel-" + tab.dataset.panel; });
+    });
+  });
+
+  // Event field only matters for festivals
+  const syncEvt = () => { $("#addEventWrap").style.visibility =
+    $("#addCategory").value === "festivals" ? "visible" : "hidden"; };
+  $("#addCategory").addEventListener("change", syncEvt);
+  syncEvt();
+
+  const takeFiles = files => addPhotos(
+    files, $("#addCategory").value, $("#addEvent").value.trim(),
+    parseInt($("#addMaxEdge").value, 10) || 2400
+  );
+  wireDrop($("#drop"), takeFiles);
+  $("#drop").addEventListener("click", () => $("#filePicker").click());
+  $("#filePicker").addEventListener("change", e => { takeFiles(Array.from(e.target.files)); e.target.value = ""; });
+
+  // Hero
+  const takeHero = async files => {
+    const file = files.find(f => f.type.startsWith("image/"));
+    if (!file) return;
+    if (!dirHandle) { toast("Choose your site folder first.", "bad"); return; }
+    try {
+      const { blob } = await resizeToJpeg(file, 2800, 0.88);
+      const assets = await dirHandle.getDirectoryHandle("assets");
+      const img = await assets.getDirectoryHandle("img");
+      const dir = await img.getDirectoryHandle("hero", { create: true });
+      const fh = await dir.getFileHandle("hero.jpg", { create: true });
+      const w = await fh.createWritable();
+      await w.write(blob);
+      await w.close();
+      data.hero.src = "assets/img/hero/hero.jpg";
+      thumbCache.delete(data.hero.src);
+      markDirty(); renderHero();
+      toast("Hero image set. Save, then Commit and Push.", "ok");
+    } catch (err) { toast("Could not set hero: " + err.message, "bad"); }
+  };
+  wireDrop($("#heroDrop"), takeHero);
+  $("#heroDrop").addEventListener("click", () => $("#heroPicker").click());
+  $("#heroPicker").addEventListener("change", e => { takeHero(Array.from(e.target.files)); e.target.value = ""; });
+  $("#heroAlt").addEventListener("input", e => { data.hero.alt = e.target.value; markDirty(); });
+
+  // Marquee
+  const addName = () => {
+    const v = $("#marqueeInput").value.trim();
+    if (!v) return;
+    data.marquee.push(v);
+    $("#marqueeInput").value = "";
+    markDirty(); renderMarquee();
+  };
+  $("#marqueeAdd").addEventListener("click", addName);
+  $("#marqueeInput").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); addName(); } });
+
+  // Don't lose edits to a stray tab close
+  window.addEventListener("beforeunload", e => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
+
+  // Offer the previously-used folder
+  const prev = await loadHandle();
+  if (prev) {
+    const perm = await prev.queryPermission({ mode: "readwrite" });
+    if (perm === "granted") {
+      dirHandle = prev;
+      setStatus(prev.name, true);
+      try { await load(); } catch (err) { toast("Couldn't reload: " + err.message, "bad"); }
+    } else {
+      setStatus("Click “Choose site folder” to reconnect");
+      $("#connectBtn").textContent = "Reconnect to " + prev.name;
+    }
+  }
+}
+</script>
+</body>
+</html>

@@ -29,6 +29,41 @@ tools/
 
 ---
 
+## The editor (easiest way to change anything)
+
+**https://kay-quan.github.io/tools/editor.html** — bookmark it.
+
+A visual editor for the site's content. Add photos by dropping them in, write
+captions, set which ones appear on the homepage, reorder them, change the hero
+image, edit the festival ticker. No code.
+
+1. Open the link, click **Choose site folder**, pick
+   `C:\Users\Kevin\Documents\kay-quan.github.io`. It remembers next time.
+2. Make your changes.
+3. Click **Save changes**.
+4. Open GitHub Desktop → Commit → Push.
+
+Dropping photos in does the resizing for you — same job as the PowerShell
+script below, including stripping EXIF so your camera's GPS location isn't
+published. Use whichever you prefer.
+
+### Why there's no password on it
+
+The page is public, but there is nothing to protect. It has no connection to
+the live site and no copy of your files — it only edits files on whatever
+computer opens it, and only after that person picks a folder from their own
+disk. A stranger opening it sees an empty editor pointed at nothing.
+
+A password wouldn't help anyway: GitHub Pages serves static files with no
+server behind them, so any password check would live in JavaScript that anyone
+can read with View Source. The real lock on your site is your GitHub account —
+nothing reaches the live site without a push from you.
+
+**Needs Chrome or Edge.** Writing to local files is a capability Firefox and
+Safari don't support yet.
+
+---
+
 ## Adding photos — the short version
 
 ### 1. Resize them first
