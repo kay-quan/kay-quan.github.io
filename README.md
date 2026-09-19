@@ -47,20 +47,55 @@ Dropping photos in does the resizing for you — same job as the PowerShell
 script below, including stripping EXIF so your camera's GPS location isn't
 published. Use whichever you prefer.
 
-### Why there's no password on it
+### Two modes
 
-The page is public, but there is nothing to protect. It has no connection to
-the live site and no copy of your files — it only edits files on whatever
-computer opens it, and only after that person picks a folder from their own
-disk. A stranger opening it sees an empty editor pointed at nothing.
+Switch between them at the top of the editor.
 
-A password wouldn't help anyway: GitHub Pages serves static files with no
-server behind them, so any password check would live in JavaScript that anyone
-can read with View Source. The real lock on your site is your GitHub account —
-nothing reaches the live site without a push from you.
+**Remote** — works on any device, including your phone, in any browser.
+Sign in once with a GitHub access token. Changes commit straight to GitHub
+and the site updates about a minute later. No GitHub Desktop needed.
 
-**Needs Chrome or Edge.** Writing to local files is a capability Firefox and
-Safari don't support yet.
+**This computer** — writes to the folder on this machine; you then publish
+with GitHub Desktop. No token needed, but it only works here, in Chrome or
+Edge (writing to local files is something Firefox and Safari can't do).
+
+### Setting up remote editing (once)
+
+1. Go to https://github.com/settings/personal-access-tokens/new
+2. **Expiration:** your choice — 90 days is a reasonable balance.
+3. **Repository access:** *Only select repositories* → `kay-quan.github.io`
+4. **Permissions → Repository permissions → Contents:** *Read and write*
+5. Generate, copy, and paste it into the editor's token box.
+
+That scoping matters. The token can only touch this one repository's files —
+it can't read your other repos, change settings, or act as you anywhere else.
+
+**Never paste the token into a chat, email or message.** It belongs in the
+editor's token box and nowhere else. It's stored in that browser only;
+"Sign out" erases it. If it ever leaks, revoke it at
+https://github.com/settings/personal-access-tokens and make a new one.
+
+### The one gotcha: pull before editing locally
+
+If you publish from your phone, the copy on your computer is now out of date.
+Before editing on the computer again, open GitHub Desktop and click
+**Pull origin** first. Skip that and you'll get a merge conflict, which is
+annoying to untangle.
+
+The editor reminds you of this after every remote publish.
+
+### Why there's no username-and-password login
+
+A password box would be theatre. GitHub Pages serves static files with no
+server behind them, so any password check would run in JavaScript that anyone
+can read with View Source — it would look locked and be wide open.
+
+The token is real security instead: GitHub enforces it server-side. Someone
+opening the editor without one can look at the empty form and do nothing else.
+
+A "Sign in with GitHub" button is possible, but it needs an OAuth app plus a
+small server to hold the client secret (a Cloudflare Worker). Same security as
+the token, nicer to use, more to set up and maintain.
 
 ---
 

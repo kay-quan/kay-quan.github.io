@@ -4,14 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Site Editor — Kevin Quan</title>
-
-<!-- Not part of the public site. Nothing links to it and search engines skip it. -->
 <meta name="robots" content="noindex, nofollow">
 
 <style>
 /* ---------------------------------------------------------------------------
-   Deliberately self-contained — this tool must keep working even if the site's
-   stylesheet is mid-edit or broken.
+   Self-contained on purpose — this tool must keep working even if the site's
+   own stylesheet is mid-edit or broken.
 --------------------------------------------------------------------------- */
 :root{
   --bg:#0a0a0c; --bg2:#121216; --surface:#17171c; --surface2:#1f1f26;
@@ -28,176 +26,230 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 input,select,textarea{font:inherit}
 img{display:block;max-width:100%}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+a{color:var(--accent)}
 
-.bar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;
-     padding:.85rem 1.25rem;background:rgba(10,10,12,.92);backdrop-filter:blur(12px);
+.bar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:.85rem;flex-wrap:wrap;
+     padding:.8rem 1.15rem;background:rgba(10,10,12,.93);backdrop-filter:blur(12px);
      border-bottom:1px solid var(--line-soft)}
-.bar h1{font-size:1rem;font-weight:700;letter-spacing:-.01em;white-space:nowrap}
+.bar h1{font-size:.98rem;font-weight:700;letter-spacing:-.01em;white-space:nowrap}
 .bar h1 i{color:var(--accent);font-style:normal}
 .bar .spacer{flex:1}
 
-.btn{display:inline-flex;align-items:center;gap:.5rem;padding:.55rem 1rem;border:1px solid var(--line);
-     border-radius:7px;font-size:.85rem;font-weight:600;transition:.18s}
+.btn{display:inline-flex;align-items:center;gap:.5rem;padding:.52rem .95rem;border:1px solid var(--line);
+     border-radius:7px;font-size:.84rem;font-weight:600;transition:.18s;white-space:nowrap}
 .btn:hover:not(:disabled){background:var(--surface2);border-color:var(--dim)}
 .btn:disabled{opacity:.4;cursor:not-allowed}
 .btn--primary{background:var(--accent);border-color:var(--accent);color:#fff}
 .btn--primary:hover:not(:disabled){filter:brightness(1.12);background:var(--accent);border-color:var(--accent)}
-.btn--sm{padding:.3rem .6rem;font-size:.75rem;border-radius:5px}
+.btn--sm{padding:.28rem .58rem;font-size:.74rem;border-radius:5px}
 .btn--danger:hover:not(:disabled){background:var(--bad);border-color:var(--bad);color:#fff}
+.btn--ghost{border-color:transparent;color:var(--dim)}
+.btn--ghost:hover:not(:disabled){color:var(--text)}
 
 .dot{width:8px;height:8px;border-radius:50%;background:var(--faint);flex:none}
 .dot.on{background:var(--ok)}
-.status{font-size:.8rem;color:var(--dim);display:flex;align-items:center;gap:.5rem}
+.status{font-size:.8rem;color:var(--dim);display:flex;align-items:center;gap:.5rem;min-width:0}
+.status span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-.wrap{max-width:1080px;margin:0 auto;padding:1.5rem 1.25rem 6rem}
+/* mode switch */
+.modes{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:2px}
+.modes button{padding:.35rem .7rem;font-size:.78rem;font-weight:600;border-radius:6px;color:var(--dim)}
+.modes button[aria-pressed="true"]{background:var(--surface2);color:var(--text)}
 
-.tabs{display:flex;gap:.35rem;margin-bottom:1.5rem;border-bottom:1px solid var(--line-soft)}
-.tab{padding:.6rem 1rem;font-size:.85rem;font-weight:600;color:var(--dim);border-bottom:2px solid transparent;margin-bottom:-1px}
+.wrap{max-width:1080px;margin:0 auto;padding:1.4rem 1.15rem 6rem}
+
+.tabs{display:flex;gap:.3rem;margin-bottom:1.4rem;border-bottom:1px solid var(--line-soft)}
+.tab{padding:.58rem .95rem;font-size:.85rem;font-weight:600;color:var(--dim);border-bottom:2px solid transparent;margin-bottom:-1px}
 .tab[aria-selected="true"]{color:var(--text);border-bottom-color:var(--accent)}
-
 .panel[hidden]{display:none}
 
-.card{background:var(--surface);border:1px solid var(--line-soft);border-radius:10px;padding:1.15rem;margin-bottom:1rem}
+.card{background:var(--surface);border:1px solid var(--line-soft);border-radius:10px;padding:1.1rem;margin-bottom:1rem}
 .card h2{font-size:.95rem;font-weight:700;margin-bottom:.3rem}
 .card .hint{font-size:.8rem;color:var(--faint);margin-bottom:1rem}
 
-label.f{display:block;margin-bottom:.9rem}
-label.f > span{display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);margin-bottom:.35rem}
-input[type=text],input[type=number],select,textarea{
+label.f{display:block;margin-bottom:.85rem}
+label.f > span{display:block;font-size:.71rem;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);margin-bottom:.32rem}
+input[type=text],input[type=password],input[type=number],select,textarea{
   width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);
-  border-radius:6px;padding:.5rem .65rem;font-size:.88rem}
+  border-radius:6px;padding:.5rem .62rem;font-size:.87rem}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
-.row{display:flex;gap:.75rem;flex-wrap:wrap}
+.row{display:flex;gap:.7rem;flex-wrap:wrap}
 .row > *{flex:1;min-width:150px}
 
-/* drop zone */
-.drop{border:2px dashed var(--line);border-radius:10px;padding:2rem 1rem;text-align:center;
-      color:var(--dim);font-size:.9rem;transition:.18s;cursor:pointer}
+.drop{border:2px dashed var(--line);border-radius:10px;padding:1.9rem 1rem;text-align:center;
+      color:var(--dim);font-size:.89rem;transition:.18s;cursor:pointer}
 .drop:hover,.drop.over{border-color:var(--accent);background:rgba(255,95,61,.06);color:var(--text)}
 
-/* photo rows */
-.group{margin-bottom:1.75rem}
-.group > h3{font-size:.75rem;text-transform:uppercase;letter-spacing:.14em;color:var(--faint);
-            margin-bottom:.6rem;display:flex;align-items:center;gap:.6rem}
+.group{margin-bottom:1.7rem}
+.group > h3{font-size:.74rem;text-transform:uppercase;letter-spacing:.14em;color:var(--faint);
+            margin-bottom:.55rem;display:flex;align-items:center;gap:.6rem}
 .group > h3::after{content:"";flex:1;height:1px;background:var(--line-soft)}
 
-.item{display:grid;grid-template-columns:76px 1fr auto;gap:.85rem;align-items:start;
+.item{display:grid;grid-template-columns:76px 1fr auto;gap:.8rem;align-items:start;
       background:var(--surface);border:1px solid var(--line-soft);border-radius:9px;
-      padding:.7rem;margin-bottom:.5rem}
+      padding:.65rem;margin-bottom:.45rem}
 .item.missing{border-color:rgba(255,197,61,.35)}
+.item.fresh{border-color:rgba(61,220,132,.4)}
 .thumb{width:76px;height:76px;border-radius:6px;object-fit:cover;background:var(--surface2);
        display:grid;place-content:center;font-size:.6rem;color:var(--faint);text-align:center;overflow:hidden}
 .thumb img{width:100%;height:100%;object-fit:cover}
-.fields{display:grid;gap:.45rem}
-.fields .row{gap:.45rem}
-.meta{font-family:var(--mono);font-size:.68rem;color:var(--faint);word-break:break-all}
-.ctrls{display:flex;flex-direction:column;gap:.3rem;align-items:flex-end}
-.chk{display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:var(--dim);white-space:nowrap}
+.fields{display:grid;gap:.42rem;min-width:0}
+.fields .row{gap:.42rem}
+.meta{font-family:var(--mono);font-size:.67rem;color:var(--faint);word-break:break-all}
+.badge{display:inline-block;background:rgba(61,220,132,.15);color:var(--ok);border-radius:4px;
+       padding:.05rem .3rem;font-size:.62rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-left:.3rem}
+.ctrls{display:flex;flex-direction:column;gap:.28rem;align-items:flex-end}
+.chk{display:flex;align-items:center;gap:.4rem;font-size:.77rem;color:var(--dim);white-space:nowrap}
 .chk input{accent-color:var(--accent);width:15px;height:15px}
 
-/* marquee chips */
-.chips{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.85rem}
+.chips{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.8rem}
 .chip{display:inline-flex;align-items:center;gap:.45rem;background:var(--surface2);
-      border:1px solid var(--line);border-radius:999px;padding:.3rem .5rem .3rem .8rem;font-size:.82rem}
+      border:1px solid var(--line);border-radius:999px;padding:.28rem .45rem .28rem .75rem;font-size:.81rem}
 .chip button{color:var(--faint);font-size:1rem;line-height:1;padding:0 .15rem}
 .chip button:hover{color:var(--bad)}
 
-.toast{position:fixed;left:50%;bottom:1.5rem;transform:translateX(-50%) translateY(150%);
+.toast{position:fixed;left:50%;bottom:1.4rem;transform:translateX(-50%) translateY(150%);
        background:var(--surface2);border:1px solid var(--line);border-radius:8px;
-       padding:.7rem 1.1rem;font-size:.85rem;z-index:100;transition:transform .3s;max-width:90vw}
+       padding:.68rem 1.05rem;font-size:.85rem;z-index:100;max-width:90vw;transition:transform .3s}
 .toast.show{transform:translateX(-50%) translateY(0)}
-.toast.ok{border-color:var(--ok)} .toast.bad{border-color:var(--bad)}
+.toast.ok{border-color:var(--ok)} .toast.bad{border-color:var(--bad)} .toast.warn{border-color:var(--warn)}
 
-.note{border-left:2px solid var(--accent);padding:.6rem 0 .6rem .9rem;font-size:.85rem;color:var(--dim);margin-bottom:1.25rem}
+.note{border-left:2px solid var(--accent);padding:.55rem 0 .55rem .85rem;font-size:.85rem;color:var(--dim);margin-bottom:1.2rem}
 .note b{color:var(--text)}
-.unsupported{max-width:620px;margin:5rem auto;padding:0 1.25rem;text-align:center}
-.unsupported h1{font-size:1.4rem;margin-bottom:.75rem}
-.unsupported p{color:var(--dim);margin-bottom:1rem}
-code{font-family:var(--mono);font-size:.85em;background:var(--surface2);padding:.1em .35em;border-radius:4px}
+.note.warn{border-left-color:var(--warn)}
+.note.ok{border-left-color:var(--ok)}
+
 .empty{color:var(--faint);font-size:.85rem;padding:1rem 0}
+code{font-family:var(--mono);font-size:.85em;background:var(--surface2);padding:.1em .35em;border-radius:4px}
+ol.steps{margin:0 0 1rem 1.1rem;padding:0;font-size:.86rem;color:var(--dim)}
+ol.steps li{margin-bottom:.45rem}
+ol.steps b{color:var(--text)}
+.kv{font-family:var(--mono);font-size:.78rem;background:var(--bg);border:1px solid var(--line-soft);
+    border-radius:6px;padding:.5rem .6rem;margin:.35rem 0 .7rem;color:var(--text);word-break:break-all}
+
+.gate{max-width:620px;margin:3rem auto;padding:0 1.15rem}
+.gate h2{font-size:1.15rem;margin-bottom:.5rem}
+.unsupported{max-width:620px;margin:5rem auto;padding:0 1.25rem;text-align:center}
 </style>
 </head>
 <body>
 
-<!-- Shown only when the browser can't do this -->
-<div id="unsupported" class="unsupported" hidden>
-  <h1>This needs Chrome or Edge</h1>
-  <p>The editor writes directly to the files on your computer, which only
-     Chrome and Edge can do. Firefox and Safari don't support it yet.</p>
-  <p>Open this same page in Edge — it's already on your machine.</p>
+<div class="bar">
+  <h1>Site Editor<i>.</i></h1>
+
+  <div class="modes" role="group" aria-label="Where to edit">
+    <button id="modeRemote" aria-pressed="false">Remote</button>
+    <button id="modeLocal"  aria-pressed="false">This computer</button>
+  </div>
+
+  <span class="status"><span class="dot" id="dot"></span><span id="statusText">Not connected</span></span>
+  <span class="spacer"></span>
+  <button class="btn btn--ghost" id="signOutBtn" hidden>Sign out</button>
+  <button class="btn" id="connectBtn">Connect</button>
+  <button class="btn btn--primary" id="saveBtn" disabled>Save</button>
 </div>
 
-<div id="app" hidden>
+<div class="wrap">
 
-  <header class="bar">
-    <h1>Site Editor<i>.</i></h1>
-    <span class="status"><span class="dot" id="dot"></span><span id="statusText">Not connected</span></span>
-    <span class="spacer"></span>
-    <button class="btn" id="connectBtn">Choose site folder</button>
-    <button class="btn btn--primary" id="saveBtn" disabled>Save changes</button>
-  </header>
+  <!-- ===================== REMOTE SIGN-IN GATE ===================== -->
+  <div class="gate" id="gate" hidden>
+    <div class="card">
+      <h2>Sign in to edit remotely</h2>
+      <p class="hint">This works from any device, including your phone. Changes
+         commit straight to GitHub and the site updates within a minute.</p>
 
-  <div class="wrap">
+      <p class="note"><b>Never paste this token into a chat, email or message —
+         not even to me.</b> It goes in the box below and nowhere else. It's kept
+         in this browser only, and "Sign out" erases it.</p>
 
-    <div class="note" id="introNote">
-      <b>How this works.</b> This page edits the files in your site folder on
-      this computer. It can't touch the live site by itself — after saving,
-      open GitHub Desktop and hit Commit then Push to publish.
+      <ol class="steps">
+        <li>Open <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">
+            github.com/settings/personal-access-tokens/new</a> (log in if asked).</li>
+        <li><b>Token name:</b> anything, e.g. <code>site editor</code></li>
+        <li><b>Expiration:</b> your choice. Longer means fewer interruptions;
+            90 days is a sensible balance.</li>
+        <li><b>Repository access:</b> choose <b>Only select repositories</b>, then
+            pick <code>kay-quan.github.io</code>. This is what keeps the token
+            harmless — it can't touch anything else you own.</li>
+        <li><b>Permissions → Repository permissions → Contents:</b> set to
+            <b>Read and write</b>. Leave everything else alone.</li>
+        <li>Click <b>Generate token</b>, copy it, paste it below.</li>
+      </ol>
+
+      <label class="f"><span>Repository</span>
+        <input type="text" id="repoInput" value="kay-quan/kay-quan.github.io"></label>
+      <label class="f"><span>Access token</span>
+        <input type="password" id="tokenInput" placeholder="github_pat_…" autocomplete="off" spellcheck="false"></label>
+
+      <button class="btn btn--primary" id="signInBtn">Sign in</button>
     </div>
+  </div>
+
+  <!-- ===================== LOCAL GATE ===================== -->
+  <div class="gate" id="localGate" hidden>
+    <div class="card">
+      <h2>Edit the copy on this computer</h2>
+      <p class="hint">Writes directly to your site folder. You then publish with
+         GitHub Desktop. No token needed — but it only works on this machine,
+         in Chrome or Edge.</p>
+      <button class="btn btn--primary" id="pickFolderBtn">Choose site folder</button>
+    </div>
+  </div>
+
+  <div id="unsupported" class="unsupported" hidden>
+    <h2>Local editing needs Chrome or Edge</h2>
+    <p class="hint">Writing to files on your computer is something Firefox and
+       Safari can't do yet. Use <b>Remote</b> mode instead — that works in any browser.</p>
+  </div>
+
+  <!-- ===================== EDITOR ===================== -->
+  <div id="editor" hidden>
+
+    <div class="note" id="contextNote"></div>
+    <div class="note warn" id="staleNote" hidden></div>
 
     <div class="tabs" role="tablist">
       <button class="tab" role="tab" aria-selected="true"  data-panel="photos">Photos</button>
       <button class="tab" role="tab" aria-selected="false" data-panel="home">Homepage</button>
     </div>
 
-    <!-- ============================ PHOTOS ============================ -->
     <section class="panel" id="panel-photos" role="tabpanel">
-
       <div class="card">
         <h2>Add photos</h2>
-        <p class="hint">Drop full-size exports straight in. They're resized,
-           stripped of EXIF (so your camera's GPS location isn't published),
-           saved into the right folder, and added to the list below.</p>
+        <p class="hint">Drop full-size exports straight in. They're resized and
+           stripped of EXIF — so your camera's GPS location isn't published —
+           then added below.</p>
 
-        <div class="row" style="margin-bottom:.9rem">
+        <div class="row" style="margin-bottom:.85rem">
           <label class="f"><span>Put them in</span>
             <select id="addCategory">
               <option value="festivals">Festivals</option>
               <option value="portraits">Portraits</option>
               <option value="weddings">Weddings</option>
               <option value="food">Food</option>
-            </select>
-          </label>
+            </select></label>
           <label class="f" id="addEventWrap"><span>Festival / event</span>
-            <input type="text" id="addEvent" placeholder="e.g. Osheaga 2025">
-          </label>
+            <input type="text" id="addEvent" placeholder="e.g. Osheaga 2025"></label>
           <label class="f"><span>Max size (px)</span>
-            <input type="number" id="addMaxEdge" value="2400" min="600" max="6000" step="100">
-          </label>
+            <input type="number" id="addMaxEdge" value="2400" min="600" max="6000" step="100"></label>
         </div>
 
-        <div class="drop" id="drop">
-          <strong>Drop photos here</strong><br>or click to choose files
-        </div>
+        <div class="drop" id="drop"><strong>Drop photos here</strong><br>or click to choose files</div>
         <input type="file" id="filePicker" accept="image/*" multiple hidden>
       </div>
-
       <div id="photoList"></div>
     </section>
 
-    <!-- =========================== HOMEPAGE =========================== -->
     <section class="panel" id="panel-home" role="tabpanel" hidden>
-
       <div class="card">
         <h2>Hero image</h2>
-        <p class="hint">The big photo behind your name on the homepage. This one
-           does more for the site than any other single change.</p>
-        <div id="heroThumbWrap" style="margin-bottom:.9rem"></div>
+        <p class="hint">The big photo behind your name. This one change does more
+           for the site than any other.</p>
+        <div id="heroThumbWrap" style="margin-bottom:.85rem"></div>
         <div class="drop" id="heroDrop"><strong>Drop the hero photo here</strong><br>or click to choose</div>
         <input type="file" id="heroPicker" accept="image/*" hidden>
-        <label class="f" style="margin-top:.9rem"><span>Description (for screen readers)</span>
-          <input type="text" id="heroAlt" placeholder="Crowd lit by stage light at a festival main stage">
-        </label>
+        <label class="f" style="margin-top:.85rem"><span>Description (for screen readers)</span>
+          <input type="text" id="heroAlt" placeholder="Crowd lit by stage light at a festival main stage"></label>
       </div>
 
       <div class="card">
@@ -211,7 +263,6 @@ code{font-family:var(--mono);font-size:.85em;background:var(--surface2);padding:
         </div>
       </div>
     </section>
-
   </div>
 </div>
 
@@ -221,77 +272,69 @@ code{font-family:var(--mono);font-size:.85em;background:var(--surface2);padding:
 "use strict";
 
 /* ===========================================================================
-   Site Editor
+   Site Editor — two backends, one interface.
 
-   Reads and writes the real files in the site folder using the File System
-   Access API. There is no server and no account: the only thing it can touch
-   is a folder you explicitly hand it, on the machine you're sitting at.
+     remote : GitHub REST API. Works on any device, needs a scoped token.
+              Everything in a change-set lands as ONE commit, via the Git Data
+              API, rather than one commit per file.
 
-   Data lives in assets/js/photos.js. Rather than regex-parsing that file we
-   execute it against a stub `window` and read back what it assigned — so any
-   hand-edit that is valid JavaScript parses correctly.
+     local  : File System Access API. Writes to the folder on this machine;
+              you publish afterwards with GitHub Desktop.
+
+   photos.js is parsed by EXECUTING it against a stub `window` rather than by
+   pattern-matching, so any hand-edit that is valid JavaScript still loads.
    =========================================================================== */
 
 const $  = (s, r) => (r || document).querySelector(s);
 const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
-
 const CATEGORIES = ["festivals", "portraits", "weddings", "food"];
+const LS_TOKEN = "siteEditor.token", LS_REPO = "siteEditor.repo", LS_MODE = "siteEditor.mode";
+const PHOTOS_PATH = "assets/js/photos.js";
 
-let dirHandle = null;     // site root
+let backend = null;
+let mode = localStorage.getItem(LS_MODE) || "remote";
 let data = { hero: { src: "", alt: "" }, photos: [], marquee: [] };
 let dirty = false;
-const thumbCache = new Map();
+const thumbCache = new Map();     // src -> url
+const pendingImages = new Map();  // path -> Blob  (not yet written/committed)
 
-/* --- capability gate ---------------------------------------------------- */
-if (!window.showDirectoryPicker) {
-  $("#unsupported").hidden = false;
-} else {
-  $("#app").hidden = false;
-  init();
-}
+/* ------------------------------------------------------------------ utils */
 
-/* --- tiny helpers ------------------------------------------------------- */
 function toast(msg, kind) {
   const t = $("#toast");
   t.textContent = msg;
   t.className = "toast show " + (kind || "");
   clearTimeout(toast._t);
-  toast._t = setTimeout(() => { t.className = "toast " + (kind || ""); }, 3800);
+  toast._t = setTimeout(() => { t.className = "toast " + (kind || ""); }, 4600);
 }
+function markDirty() { dirty = true; $("#saveBtn").disabled = false; }
+function setStatus(text, on) { $("#statusText").textContent = text; $("#dot").classList.toggle("on", !!on); }
 
-function markDirty() {
-  dirty = true;
-  $("#saveBtn").disabled = false;
-}
-
-function setStatus(text, connected) {
-  $("#statusText").textContent = text;
-  $("#dot").classList.toggle("on", !!connected);
-}
-
-/* Filename-safe, lowercase, always .jpg */
 function slugify(name) {
   const base = name.replace(/\.[^.]+$/, "");
   const s = base.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
   return (s || "photo") + ".jpg";
 }
 
-/* ===========================================================================
-   Reading and writing photos.js
-   =========================================================================== */
-
-async function getFileHandle(path, create) {
-  const parts = path.split("/");
-  let dir = dirHandle;
-  for (let i = 0; i < parts.length - 1; i++) {
-    dir = await dir.getDirectoryHandle(parts[i], { create: !!create });
-  }
-  return dir.getFileHandle(parts[parts.length - 1], { create: !!create });
+/* base64 <-> text/bytes, UTF-8 safe (the file contains em dashes and accents) */
+function bytesToB64(bytes) {
+  let s = "", chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) s += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+  return btoa(s);
 }
+function textToB64(t) { return bytesToB64(new TextEncoder().encode(t)); }
+function b64ToText(b) {
+  const bin = atob(String(b).replace(/\s/g, ""));
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+async function blobToB64(blob) { return bytesToB64(new Uint8Array(await blob.arrayBuffer())); }
+
+/* ============================ photos.js format ============================ */
 
 function parsePhotosJs(code) {
   const stub = {};
-  // Runs the file's assignments against a fake window and captures them.
   new Function("window", code + "\n;")(stub);
   return {
     hero:    stub.HERO    || { src: "assets/img/hero/hero.jpg", alt: "" },
@@ -303,135 +346,166 @@ function parsePhotosJs(code) {
 const q = s => JSON.stringify(String(s == null ? "" : s));
 
 function serialize(d) {
-  const lines = [];
-  lines.push("/* ==========================================================================");
-  lines.push("   PHOTOS.JS — the content of the site.");
-  lines.push("");
-  lines.push("   Easiest way to edit this is tools/editor.html, which writes this file");
-  lines.push("   for you. Hand-editing is fine too — keep the same shape and it will");
-  lines.push("   still load correctly in the editor.");
-  lines.push("");
-  lines.push("   w and h are the image's pixel dimensions. They reserve the right shape");
-  lines.push("   before the photo downloads, so the gallery never jumps while loading.");
-  lines.push("   ========================================================================== */");
-  lines.push("");
-  lines.push("window.HERO = {");
-  lines.push("  src: " + q(d.hero.src) + ",");
-  lines.push("  alt: " + q(d.hero.alt));
-  lines.push("};");
-  lines.push("");
-  lines.push("window.PHOTOS = [");
-
+  const L = [];
+  L.push("/* ==========================================================================");
+  L.push("   PHOTOS.JS — the content of the site.");
+  L.push("");
+  L.push("   Easiest way to edit this is tools/editor.html, which writes this file");
+  L.push("   for you. Hand-editing is fine too — keep the same shape and the editor");
+  L.push("   will still load it.");
+  L.push("");
+  L.push("   w and h are the image's pixel dimensions. They reserve the right shape");
+  L.push("   before the photo downloads, so the gallery never jumps while loading.");
+  L.push("   ========================================================================== */");
+  L.push("");
+  L.push("window.HERO = {");
+  L.push("  src: " + q(d.hero.src) + ",");
+  L.push("  alt: " + q(d.hero.alt));
+  L.push("};");
+  L.push("");
+  L.push("window.PHOTOS = [");
   CATEGORIES.forEach(cat => {
     const set = d.photos.filter(p => p.category === cat);
     if (!set.length) return;
-    lines.push("");
-    lines.push("  /* --- " + cat.toUpperCase() + " --- */");
+    L.push("");
+    L.push("  /* --- " + cat.toUpperCase() + " --- */");
     set.forEach(p => {
-      const bits = [
-        "src: " + q(p.src),
-        "w: " + (p.w | 0),
-        "h: " + (p.h | 0),
-        "title: " + q(p.title)
-      ];
-      if (p.event)    bits.push("event: " + q(p.event));
+      const bits = ["src: " + q(p.src), "w: " + (p.w | 0), "h: " + (p.h | 0), "title: " + q(p.title)];
+      if (p.event) bits.push("event: " + q(p.event));
       bits.push("category: " + q(p.category));
       if (p.featured) bits.push("featured: true");
-      lines.push("  { " + bits.join(", ") + " },");
+      L.push("  { " + bits.join(", ") + " },");
     });
   });
-
-  lines.push("");
-  lines.push("];");
-  lines.push("");
-  lines.push("/* The scrolling band of festival names on the homepage. */");
-  lines.push("window.MARQUEE = [" + d.marquee.map(q).join(", ") + "];");
-  lines.push("");
-  return lines.join("\n");
+  L.push("");
+  L.push("];");
+  L.push("");
+  L.push("/* The scrolling band of festival names on the homepage. */");
+  L.push("window.MARQUEE = [" + d.marquee.map(q).join(", ") + "];");
+  L.push("");
+  return L.join("\n");
 }
 
-async function load() {
-  const fh = await getFileHandle("assets/js/photos.js");
-  const text = await (await fh.getFile()).text();
-  data = parsePhotosJs(text);
-  $("#heroAlt").value = data.hero.alt || "";
-  renderAll();
-}
+/* ============================ REMOTE BACKEND ============================= */
 
-async function save() {
-  try {
-    const fh = await getFileHandle("assets/js/photos.js", true);
-    const w = await fh.createWritable();
-    await w.write(serialize(data));
-    await w.close();
-    dirty = false;
-    $("#saveBtn").disabled = true;
-    toast("Saved. Now open GitHub Desktop → Commit → Push to put it live.", "ok");
-  } catch (err) {
-    toast("Could not save: " + err.message, "bad");
-  }
-}
+function GitHubBackend(repo, token) {
+  const [owner, name] = repo.split("/");
+  const API = "https://api.github.com";
+  const branch = "main";
 
-/* ===========================================================================
-   Connecting to the folder
-   =========================================================================== */
-
-async function connect() {
-  try {
-    const handle = await window.showDirectoryPicker({ mode: "readwrite", id: "site-root" });
-
-    // Make sure it's actually the site folder, not some random directory.
-    try {
-      const js = await handle.getDirectoryHandle("assets");
-      await (await js.getDirectoryHandle("js")).getFileHandle("photos.js");
-    } catch {
-      toast("That doesn't look like the site folder — pick the one containing index.html.", "bad");
-      return;
+  async function api(path, method, body) {
+    const res = await fetch(API + path, {
+      method: method || "GET",
+      headers: {
+        "Authorization": "Bearer " + token,
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        ...(body ? { "Content-Type": "application/json" } : {})
+      },
+      body: body ? JSON.stringify(body) : undefined
+    });
+    if (!res.ok) {
+      let detail = "";
+      try { detail = (await res.json()).message || ""; } catch {}
+      const err = new Error(
+        res.status === 401 ? "Token rejected — it may have expired. Sign out and make a new one."
+      : res.status === 403 ? "Token lacks permission. It needs Contents: Read and write on this repo."
+      : res.status === 404 ? "Repo not found, or the token can't see it: " + repo
+      : (detail || ("GitHub error " + res.status)));
+      err.status = res.status;
+      throw err;
     }
-
-    dirHandle = handle;
-    await saveHandle(handle);
-    setStatus(handle.name, true);
-    $("#introNote").innerHTML =
-      "<b>Connected to " + handle.name + ".</b> Changes here write to the files on " +
-      "this computer. After saving, open GitHub Desktop and hit Commit then Push to publish.";
-    await load();
-    toast("Connected.", "ok");
-  } catch (err) {
-    if (err && err.name === "AbortError") return;   // user cancelled
-    toast("Could not open folder: " + err.message, "bad");
+    return res.status === 204 ? null : res.json();
   }
+
+  return {
+    kind: "remote",
+    label: owner + "/" + name,
+
+    async verify() {
+      const user = await api("/user");
+      await api("/repos/" + owner + "/" + name);   // proves scope covers this repo
+      return user.login;
+    },
+
+    async loadText(path) {
+      const r = await api("/repos/" + owner + "/" + name + "/contents/" + path + "?ref=" + branch);
+      return b64ToText(r.content);
+    },
+
+    thumbURL(src) {
+      // Public repo, so no auth needed; cache-bust so fresh commits show.
+      return "https://raw.githubusercontent.com/" + owner + "/" + name + "/" + branch + "/" + src;
+    },
+
+    /* One commit for the whole change-set, using the Git Data API. */
+    async commit(files, message) {
+      const base = "/repos/" + owner + "/" + name;
+      const ref = await api(base + "/git/ref/heads/" + branch);
+      const headSha = ref.object.sha;
+      const headCommit = await api(base + "/git/commits/" + headSha);
+
+      const tree = [];
+      for (const f of files) {
+        const blob = await api(base + "/git/blobs", "POST", { content: f.base64, encoding: "base64" });
+        tree.push({ path: f.path, mode: "100644", type: "blob", sha: blob.sha });
+      }
+
+      const newTree = await api(base + "/git/trees", "POST", { base_tree: headCommit.tree.sha, tree });
+      const commit  = await api(base + "/git/commits", "POST", {
+        message, tree: newTree.sha, parents: [headSha]
+      });
+      await api(base + "/git/refs/heads/" + branch, "PATCH", { sha: commit.sha });
+      return commit.sha.substring(0, 7);
+    }
+  };
 }
 
-/* Remember the folder between visits so it's one click next time. */
+/* ============================= LOCAL BACKEND ============================= */
+
+function LocalBackend(dirHandle) {
+  async function fileHandle(path, create) {
+    const parts = path.split("/");
+    let dir = dirHandle;
+    for (let i = 0; i < parts.length - 1; i++) dir = await dir.getDirectoryHandle(parts[i], { create: !!create });
+    return dir.getFileHandle(parts[parts.length - 1], { create: !!create });
+  }
+  return {
+    kind: "local",
+    label: dirHandle.name,
+    handle: dirHandle,
+    async verify() { return dirHandle.name; },
+    async loadText(path) { return (await (await fileHandle(path)).getFile()).text(); },
+    async thumbBlob(src) { return (await fileHandle(src)).getFile(); },
+    async commit(files) {
+      for (const f of files) {
+        const fh = await fileHandle(f.path, true);
+        const w = await fh.createWritable();
+        await w.write(f.blob ? f.blob : f.text);
+        await w.close();
+      }
+      return null;
+    }
+  };
+}
+
+/* IndexedDB — remember the chosen folder between visits */
 function idb() {
   return new Promise((res, rej) => {
     const r = indexedDB.open("site-editor", 1);
     r.onupgradeneeded = () => r.result.createObjectStore("kv");
-    r.onsuccess = () => res(r.result);
-    r.onerror = () => rej(r.error);
+    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
   });
 }
-async function saveHandle(h) {
-  try {
-    const db = await idb();
-    db.transaction("kv", "readwrite").objectStore("kv").put(h, "dir");
-  } catch {}
-}
+async function saveHandle(h) { try { const db = await idb(); db.transaction("kv","readwrite").objectStore("kv").put(h,"dir"); } catch {} }
 async function loadHandle() {
-  try {
-    const db = await idb();
-    return await new Promise(res => {
-      const rq = db.transaction("kv", "readonly").objectStore("kv").get("dir");
-      rq.onsuccess = () => res(rq.result || null);
-      rq.onerror = () => res(null);
-    });
+  try { const db = await idb();
+    return await new Promise(res => { const rq = db.transaction("kv","readonly").objectStore("kv").get("dir");
+      rq.onsuccess = () => res(rq.result || null); rq.onerror = () => res(null); });
   } catch { return null; }
 }
 
-/* ===========================================================================
-   Images — resize, strip metadata, write to disk
-   =========================================================================== */
+/* ================================ IMAGES ================================= */
 
 function readImage(file) {
   return new Promise((res, rej) => {
@@ -443,112 +517,143 @@ function readImage(file) {
   });
 }
 
-/* Canvas re-encode does two useful things at once: it shrinks the file and it
-   drops every EXIF tag, including GPS coordinates. */
+/* Canvas re-encode shrinks the file AND drops every EXIF tag, GPS included. */
 async function resizeToJpeg(file, maxEdge, quality) {
   const img = await readImage(file);
   const scale = Math.min(1, maxEdge / Math.max(img.naturalWidth, img.naturalHeight));
-  const w = Math.round(img.naturalWidth * scale);
-  const h = Math.round(img.naturalHeight * scale);
-
-  const canvas = document.createElement("canvas");
-  canvas.width = w; canvas.height = h;
-  const ctx = canvas.getContext("2d");
+  const w = Math.round(img.naturalWidth * scale), h = Math.round(img.naturalHeight * scale);
+  const c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  const ctx = c.getContext("2d");
   ctx.imageSmoothingQuality = "high";
   ctx.drawImage(img, 0, 0, w, h);
-
-  const blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", quality || 0.82));
+  const blob = await new Promise(r => c.toBlob(r, "image/jpeg", quality || 0.82));
   return { blob, w, h };
 }
 
-async function writeImage(category, filename, blob) {
-  const assets = await dirHandle.getDirectoryHandle("assets");
-  const img = await assets.getDirectoryHandle("img");
-  const dir = await img.getDirectoryHandle(category, { create: true });
-
-  // Don't silently overwrite an existing photo.
+function uniquePath(category, filename) {
+  const taken = new Set([
+    ...data.photos.map(p => p.src),
+    ...pendingImages.keys()
+  ]);
   let name = filename, n = 2;
-  while (await exists(dir, name)) {
-    name = filename.replace(/\.jpg$/, "-" + n + ".jpg");
-    n++;
+  while (taken.has("assets/img/" + category + "/" + name)) {
+    name = filename.replace(/\.jpg$/, "-" + n + ".jpg"); n++;
   }
-  const fh = await dir.getFileHandle(name, { create: true });
-  const w = await fh.createWritable();
-  await w.write(blob);
-  await w.close();
-  return name;
-}
-
-async function exists(dir, name) {
-  try { await dir.getFileHandle(name); return true; } catch { return false; }
+  return "assets/img/" + category + "/" + name;
 }
 
 async function addPhotos(files, category, evt, maxEdge) {
-  if (!dirHandle) { toast("Choose your site folder first.", "bad"); return; }
+  if (!backend) { toast("Connect first.", "bad"); return; }
   let added = 0, failed = 0;
-
   for (const file of files) {
     if (!file.type.startsWith("image/")) { failed++; continue; }
     try {
       const { blob, w, h } = await resizeToJpeg(file, maxEdge, 0.82);
-      const name = await writeImage(category, slugify(file.name), blob);
-      const entry = {
-        src: "assets/img/" + category + "/" + name,
-        w, h,
-        title: "",
-        category,
-        featured: false
-      };
+      const path = uniquePath(category, slugify(file.name));
+      pendingImages.set(path, blob);
+      thumbCache.set(path, URL.createObjectURL(blob));
+      const entry = { src: path, w, h, title: "", category, featured: false, _new: true };
       if (category === "festivals" && evt) entry.event = evt;
       data.photos.push(entry);
       added++;
-    } catch (err) {
-      console.error(file.name, err);
-      failed++;
-    }
+    } catch (e) { console.error(file.name, e); failed++; }
   }
-
-  if (added) { markDirty(); renderAll(); }
-  toast(
-    added + " photo" + (added === 1 ? "" : "s") + " added" +
-    (failed ? ", " + failed + " skipped" : "") + ". Add captions, then Save.",
-    failed ? "bad" : "ok"
-  );
+  if (added) { markDirty(); renderPhotos(); }
+  toast(added + " photo" + (added === 1 ? "" : "s") + " added" +
+        (failed ? ", " + failed + " skipped" : "") + ". Add captions, then " +
+        (mode === "remote" ? "Publish." : "Save."), failed ? "bad" : "ok");
 }
 
-/* ===========================================================================
-   Rendering
-   =========================================================================== */
+/* ================================= SAVE ================================== */
+
+async function save() {
+  if (!backend) return;
+  const btn = $("#saveBtn");
+  btn.disabled = true;
+  const original = btn.textContent;
+  btn.textContent = mode === "remote" ? "Publishing…" : "Saving…";
+
+  try {
+    const clean = { hero: data.hero, marquee: data.marquee,
+      photos: data.photos.map(p => { const c = { ...p }; delete c._new; return c; }) };
+    const text = serialize(clean);
+
+    if (backend.kind === "remote") {
+      const files = [{ path: PHOTOS_PATH, base64: textToB64(text) }];
+      for (const [path, blob] of pendingImages) files.push({ path, base64: await blobToB64(blob) });
+
+      const n = pendingImages.size;
+      const msg = n
+        ? "Add " + n + " photo" + (n === 1 ? "" : "s") + " and update captions"
+        : "Update site content";
+      const sha = await backend.commit(files, msg + "\n\nvia tools/editor.html");
+
+      pendingImages.clear();
+      data.photos.forEach(p => delete p._new);
+      dirty = false;
+      renderPhotos();
+      $("#staleNote").hidden = false;
+      $("#staleNote").innerHTML =
+        "<b>Published (" + sha + ").</b> Live in about a minute. " +
+        "Your computer's copy is now behind — before editing on that machine again, " +
+        "open GitHub Desktop and click <b>Pull origin</b>.";
+      toast("Published. Live in about a minute.", "ok");
+    } else {
+      const files = [{ path: PHOTOS_PATH, text }];
+      for (const [path, blob] of pendingImages) files.push({ path, blob });
+      await backend.commit(files);
+      pendingImages.clear();
+      data.photos.forEach(p => delete p._new);
+      dirty = false;
+      renderPhotos();
+      toast("Saved. Now open GitHub Desktop → Commit → Push.", "ok");
+    }
+  } catch (err) {
+    toast(err.message, "bad");
+    btn.disabled = false;
+  } finally {
+    btn.textContent = original;
+    if (!dirty) btn.disabled = true;
+  }
+}
+
+/* =============================== RENDERING =============================== */
 
 async function thumbFor(src, el) {
-  if (thumbCache.has(src)) { el.innerHTML = ""; el.appendChild(imgEl(thumbCache.get(src))); return; }
+  if (thumbCache.has(src)) return setThumb(el, thumbCache.get(src));
   try {
-    const fh = await getFileHandle(src);
-    const url = URL.createObjectURL(await fh.getFile());
-    thumbCache.set(src, url);
-    el.innerHTML = ""; el.appendChild(imgEl(url));
-  } catch {
-    el.textContent = "no file";
-    el.closest(".item") && el.closest(".item").classList.add("missing");
-  }
+    if (backend.kind === "local") {
+      const url = URL.createObjectURL(await backend.thumbBlob(src));
+      thumbCache.set(src, url); setThumb(el, url);
+    } else {
+      setThumb(el, backend.thumbURL(src), true);
+    }
+  } catch { markMissing(el); }
 }
-function imgEl(url) { const i = new Image(); i.src = url; return i; }
+function setThumb(el, url, mayFail) {
+  el.innerHTML = "";
+  const i = new Image();
+  if (mayFail) i.onerror = () => markMissing(el);
+  i.src = url;
+  el.appendChild(i);
+}
+function markMissing(el) {
+  el.innerHTML = "no file";
+  const row = el.closest(".item");
+  if (row) row.classList.add("missing");
+}
 
 function renderAll() { renderPhotos(); renderHero(); renderMarquee(); }
 
 function renderPhotos() {
   const root = $("#photoList");
   root.innerHTML = "";
-
-  if (!data.photos.length) {
-    root.innerHTML = '<p class="empty">No photos yet. Drop some in above.</p>';
-    return;
-  }
+  if (!data.photos.length) { root.innerHTML = '<p class="empty">No photos yet. Drop some in above.</p>'; return; }
 
   CATEGORIES.forEach(cat => {
     const set = data.photos.filter(p => p.category === cat);
     if (!set.length) return;
-
     const g = document.createElement("div");
     g.className = "group";
     g.innerHTML = "<h3>" + cat + " &middot; " + set.length + "</h3>";
@@ -556,11 +661,10 @@ function renderPhotos() {
     set.forEach(p => {
       const i = data.photos.indexOf(p);
       const row = document.createElement("div");
-      row.className = "item";
+      row.className = "item" + (p._new ? " fresh" : "");
 
       const thumb = document.createElement("div");
-      thumb.className = "thumb";
-      thumb.textContent = "…";
+      thumb.className = "thumb"; thumb.textContent = "…";
 
       const fields = document.createElement("div");
       fields.className = "fields";
@@ -568,24 +672,20 @@ function renderPhotos() {
         '<input type="text" data-k="title" placeholder="Caption — e.g. Main stage, last song">' +
         '<div class="row">' +
           '<input type="text" data-k="event" placeholder="Event (festivals only)">' +
-          '<select data-k="category">' +
-            CATEGORIES.map(c => '<option value="' + c + '">' + c + '</option>').join("") +
-          '</select>' +
+          '<select data-k="category">' + CATEGORIES.map(c => '<option value="'+c+'">'+c+'</option>').join("") + '</select>' +
         '</div>' +
-        '<div class="meta">' + p.src + " &middot; " + p.w + "&times;" + p.h + '</div>';
+        '<div class="meta">' + p.src + " &middot; " + p.w + "&times;" + p.h +
+        (p._new ? '<span class="badge">new</span>' : "") + '</div>';
 
       $('[data-k="title"]', fields).value = p.title || "";
       $('[data-k="event"]', fields).value = p.event || "";
       $('[data-k="category"]', fields).value = p.category;
 
-      $$("input,select", fields).forEach(inp => {
-        inp.addEventListener("input", () => {
-          const k = inp.dataset.k;
-          if (k === "category") { p.category = inp.value; markDirty(); renderPhotos(); return; }
-          p[k] = inp.value;
-          markDirty();
-        });
-      });
+      $$("input,select", fields).forEach(inp => inp.addEventListener("input", () => {
+        const k = inp.dataset.k;
+        if (k === "category") { p.category = inp.value; markDirty(); renderPhotos(); return; }
+        p[k] = inp.value; markDirty();
+      }));
 
       const ctrls = document.createElement("div");
       ctrls.className = "ctrls";
@@ -608,8 +708,9 @@ function renderPhotos() {
       const del = document.createElement("button");
       del.className = "btn btn--sm btn--danger"; del.textContent = "Remove";
       del.addEventListener("click", () => {
-        if (!confirm("Remove this photo from the site?\n\n" + p.src +
-                     "\n\nThe image file stays on your computer — this only takes it off the site.")) return;
+        if (!confirm("Take this photo off the site?\n\n" + p.src +
+                     "\n\nThe image file itself is left alone.")) return;
+        pendingImages.delete(p.src);
         data.photos.splice(i, 1);
         markDirty(); renderPhotos();
       });
@@ -619,7 +720,6 @@ function renderPhotos() {
       g.appendChild(row);
       thumbFor(p.src, thumb);
     });
-
     root.appendChild(g);
   });
 }
@@ -629,8 +729,7 @@ function move(i, dir) {
   if (j < 0 || j >= data.photos.length) return;
   const [x] = data.photos.splice(i, 1);
   data.photos.splice(j, 0, x);
-  markDirty();
-  renderPhotos();
+  markDirty(); renderPhotos();
 }
 
 function renderHero() {
@@ -638,10 +737,7 @@ function renderHero() {
   wrap.innerHTML = "";
   if (!data.hero.src) return;
   const t = document.createElement("div");
-  t.className = "thumb";
-  t.style.width = "100%";
-  t.style.height = "180px";
-  t.textContent = "…";
+  t.className = "thumb"; t.style.width = "100%"; t.style.height = "180px"; t.textContent = "…";
   wrap.appendChild(t);
   thumbFor(data.hero.src, t);
 }
@@ -652,74 +748,171 @@ function renderMarquee() {
   if (!data.marquee.length) { box.innerHTML = '<span class="empty">None yet.</span>'; return; }
   data.marquee.forEach((name, i) => {
     const c = document.createElement("span");
-    c.className = "chip";
-    c.textContent = name;
+    c.className = "chip"; c.textContent = name;
     const x = document.createElement("button");
-    x.textContent = "×";
-    x.title = "Remove";
-    x.addEventListener("click", () => { data.marquee.splice(i, 1); markDirty(); renderMarquee(); });
+    x.textContent = "×"; x.title = "Remove";
+    x.addEventListener("click", () => { data.marquee.splice(i,1); markDirty(); renderMarquee(); });
     c.appendChild(x);
     box.appendChild(c);
   });
 }
 
-/* ===========================================================================
-   Wiring
-   =========================================================================== */
+/* ============================== CONNECTION =============================== */
+
+async function afterConnect() {
+  const text = await backend.loadText(PHOTOS_PATH);
+  data = parsePhotosJs(text);
+  $("#heroAlt").value = data.hero.alt || "";
+  pendingImages.clear();
+  thumbCache.clear();
+  dirty = false;
+  $("#saveBtn").disabled = true;
+  $("#saveBtn").textContent = mode === "remote" ? "Publish" : "Save";
+  $("#gate").hidden = true;
+  $("#localGate").hidden = true;
+  $("#unsupported").hidden = true;
+  $("#editor").hidden = false;
+  $("#connectBtn").hidden = true;
+  $("#signOutBtn").hidden = mode !== "remote";
+  renderAll();
+}
+
+async function signIn() {
+  const repo = $("#repoInput").value.trim();
+  const token = $("#tokenInput").value.trim();
+  if (!/^[\w.-]+\/[\w.-]+$/.test(repo)) { toast("Repository should look like owner/name.", "bad"); return; }
+  if (!token) { toast("Paste your access token.", "bad"); return; }
+
+  const be = GitHubBackend(repo, token);
+  try {
+    const login = await be.verify();
+    backend = be;
+    localStorage.setItem(LS_TOKEN, token);
+    localStorage.setItem(LS_REPO, repo);
+    $("#tokenInput").value = "";
+    setStatus(login + " · " + repo, true);
+    $("#contextNote").innerHTML =
+      "<b>Editing " + repo + " directly.</b> Publishing commits straight to GitHub " +
+      "and the live site updates about a minute later.";
+    await afterConnect();
+    toast("Signed in as " + login + ".", "ok");
+  } catch (err) { toast(err.message, "bad"); }
+}
+
+function signOut() {
+  localStorage.removeItem(LS_TOKEN);
+  backend = null; dirty = false;
+  pendingImages.clear(); thumbCache.clear();
+  $("#editor").hidden = true;
+  $("#signOutBtn").hidden = true;
+  $("#connectBtn").hidden = false;
+  setStatus("Not connected", false);
+  applyMode("remote");
+  toast("Signed out. Token erased from this browser.", "ok");
+}
+
+async function pickFolder() {
+  try {
+    const handle = await window.showDirectoryPicker({ mode: "readwrite", id: "site-root" });
+    try {
+      const a = await handle.getDirectoryHandle("assets");
+      await (await a.getDirectoryHandle("js")).getFileHandle("photos.js");
+    } catch {
+      toast("That isn't the site folder — pick the one containing index.html.", "bad"); return;
+    }
+    backend = LocalBackend(handle);
+    await saveHandle(handle);
+    setStatus(handle.name, true);
+    $("#contextNote").innerHTML =
+      "<b>Editing the copy in " + handle.name + ".</b> After saving, open GitHub " +
+      "Desktop and hit Commit then Push to publish.";
+    await afterConnect();
+    toast("Connected.", "ok");
+  } catch (err) {
+    if (err && err.name === "AbortError") return;
+    toast("Could not open folder: " + err.message, "bad");
+  }
+}
+
+/* ================================= MODE ================================== */
+
+function applyMode(m) {
+  if (dirty && !confirm("You have unsaved changes. Switch anyway and lose them?")) return;
+  mode = m;
+  localStorage.setItem(LS_MODE, m);
+  $("#modeRemote").setAttribute("aria-pressed", String(m === "remote"));
+  $("#modeLocal").setAttribute("aria-pressed",  String(m === "local"));
+
+  backend = null; dirty = false;
+  pendingImages.clear(); thumbCache.clear();
+  $("#editor").hidden = true;
+  $("#staleNote").hidden = true;
+  $("#saveBtn").disabled = true;
+  $("#saveBtn").textContent = m === "remote" ? "Publish" : "Save";
+  $("#connectBtn").hidden = false;
+  $("#connectBtn").textContent = m === "remote" ? "Sign in" : "Choose site folder";
+  setStatus("Not connected", false);
+
+  if (m === "remote") {
+    $("#signOutBtn").hidden = true;
+    $("#localGate").hidden = true;
+    $("#unsupported").hidden = true;
+    $("#gate").hidden = false;
+    $("#repoInput").value = localStorage.getItem(LS_REPO) || "kay-quan/kay-quan.github.io";
+  } else {
+    $("#gate").hidden = true;
+    $("#signOutBtn").hidden = true;
+    const ok = !!window.showDirectoryPicker;
+    $("#localGate").hidden = !ok;
+    $("#unsupported").hidden = ok;
+    $("#connectBtn").disabled = !ok;
+  }
+}
+
+/* ================================= INIT ================================== */
 
 function wireDrop(zone, onFiles) {
   zone.addEventListener("dragover", e => { e.preventDefault(); zone.classList.add("over"); });
   zone.addEventListener("dragleave", () => zone.classList.remove("over"));
-  zone.addEventListener("drop", e => {
-    e.preventDefault();
-    zone.classList.remove("over");
-    onFiles(Array.from(e.dataTransfer.files));
-  });
+  zone.addEventListener("drop", e => { e.preventDefault(); zone.classList.remove("over"); onFiles(Array.from(e.dataTransfer.files)); });
 }
 
-async function init() {
-  $("#connectBtn").addEventListener("click", connect);
+(async function init() {
+  $("#modeRemote").addEventListener("click", () => applyMode("remote"));
+  $("#modeLocal").addEventListener("click",  () => applyMode("local"));
+  $("#signInBtn").addEventListener("click", signIn);
+  $("#tokenInput").addEventListener("keydown", e => { if (e.key === "Enter") signIn(); });
+  $("#signOutBtn").addEventListener("click", signOut);
+  $("#pickFolderBtn").addEventListener("click", pickFolder);
+  $("#connectBtn").addEventListener("click", () => mode === "remote" ? $("#tokenInput").focus() : pickFolder());
   $("#saveBtn").addEventListener("click", save);
 
-  $$(".tab").forEach(tab => {
-    tab.addEventListener("click", () => {
-      $$(".tab").forEach(t => t.setAttribute("aria-selected", String(t === tab)));
-      $$(".panel").forEach(p => { p.hidden = p.id !== "panel-" + tab.dataset.panel; });
-    });
-  });
+  $$(".tab").forEach(tab => tab.addEventListener("click", () => {
+    $$(".tab").forEach(t => t.setAttribute("aria-selected", String(t === tab)));
+    $$(".panel").forEach(p => { p.hidden = p.id !== "panel-" + tab.dataset.panel; });
+  }));
 
-  // Event field only matters for festivals
-  const syncEvt = () => { $("#addEventWrap").style.visibility =
-    $("#addCategory").value === "festivals" ? "visible" : "hidden"; };
-  $("#addCategory").addEventListener("change", syncEvt);
-  syncEvt();
+  const syncEvt = () => { $("#addEventWrap").style.visibility = $("#addCategory").value === "festivals" ? "visible" : "hidden"; };
+  $("#addCategory").addEventListener("change", syncEvt); syncEvt();
 
-  const takeFiles = files => addPhotos(
-    files, $("#addCategory").value, $("#addEvent").value.trim(),
-    parseInt($("#addMaxEdge").value, 10) || 2400
-  );
+  const takeFiles = f => addPhotos(f, $("#addCategory").value, $("#addEvent").value.trim(),
+                                   parseInt($("#addMaxEdge").value, 10) || 2400);
   wireDrop($("#drop"), takeFiles);
   $("#drop").addEventListener("click", () => $("#filePicker").click());
   $("#filePicker").addEventListener("change", e => { takeFiles(Array.from(e.target.files)); e.target.value = ""; });
 
-  // Hero
   const takeHero = async files => {
     const file = files.find(f => f.type.startsWith("image/"));
     if (!file) return;
-    if (!dirHandle) { toast("Choose your site folder first.", "bad"); return; }
+    if (!backend) { toast("Connect first.", "bad"); return; }
     try {
       const { blob } = await resizeToJpeg(file, 2800, 0.88);
-      const assets = await dirHandle.getDirectoryHandle("assets");
-      const img = await assets.getDirectoryHandle("img");
-      const dir = await img.getDirectoryHandle("hero", { create: true });
-      const fh = await dir.getFileHandle("hero.jpg", { create: true });
-      const w = await fh.createWritable();
-      await w.write(blob);
-      await w.close();
-      data.hero.src = "assets/img/hero/hero.jpg";
-      thumbCache.delete(data.hero.src);
+      const path = "assets/img/hero/hero.jpg";
+      pendingImages.set(path, blob);
+      thumbCache.set(path, URL.createObjectURL(blob));
+      data.hero.src = path;
       markDirty(); renderHero();
-      toast("Hero image set. Save, then Commit and Push.", "ok");
+      toast("Hero set. " + (mode === "remote" ? "Hit Publish." : "Hit Save."), "ok");
     } catch (err) { toast("Could not set hero: " + err.message, "bad"); }
   };
   wireDrop($("#heroDrop"), takeHero);
@@ -727,34 +920,47 @@ async function init() {
   $("#heroPicker").addEventListener("change", e => { takeHero(Array.from(e.target.files)); e.target.value = ""; });
   $("#heroAlt").addEventListener("input", e => { data.hero.alt = e.target.value; markDirty(); });
 
-  // Marquee
   const addName = () => {
     const v = $("#marqueeInput").value.trim();
     if (!v) return;
-    data.marquee.push(v);
-    $("#marqueeInput").value = "";
+    data.marquee.push(v); $("#marqueeInput").value = "";
     markDirty(); renderMarquee();
   };
   $("#marqueeAdd").addEventListener("click", addName);
   $("#marqueeInput").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); addName(); } });
 
-  // Don't lose edits to a stray tab close
   window.addEventListener("beforeunload", e => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
 
-  // Offer the previously-used folder
-  const prev = await loadHandle();
-  if (prev) {
-    const perm = await prev.queryPermission({ mode: "readwrite" });
-    if (perm === "granted") {
-      dirHandle = prev;
+  applyMode(mode);
+
+  // Auto-resume remote session if a token is already stored here.
+  if (mode === "remote") {
+    const token = localStorage.getItem(LS_TOKEN);
+    const repo = localStorage.getItem(LS_REPO) || "kay-quan/kay-quan.github.io";
+    if (token) {
+      const be = GitHubBackend(repo, token);
+      try {
+        const login = await be.verify();
+        backend = be;
+        setStatus(login + " · " + repo, true);
+        $("#contextNote").innerHTML =
+          "<b>Editing " + repo + " directly.</b> Publishing commits straight to GitHub " +
+          "and the live site updates about a minute later.";
+        await afterConnect();
+      } catch (err) { toast(err.message, "bad"); }
+    }
+  } else {
+    const prev = await loadHandle();
+    if (prev && (await prev.queryPermission({ mode: "readwrite" })) === "granted") {
+      backend = LocalBackend(prev);
       setStatus(prev.name, true);
-      try { await load(); } catch (err) { toast("Couldn't reload: " + err.message, "bad"); }
-    } else {
-      setStatus("Click “Choose site folder” to reconnect");
-      $("#connectBtn").textContent = "Reconnect to " + prev.name;
+      $("#contextNote").innerHTML =
+        "<b>Editing the copy in " + prev.name + ".</b> After saving, open GitHub " +
+        "Desktop and hit Commit then Push to publish.";
+      try { await afterConnect(); } catch (err) { toast(err.message, "bad"); }
     }
   }
-}
+})();
 </script>
 </body>
 </html>
