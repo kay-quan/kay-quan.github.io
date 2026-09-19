@@ -120,6 +120,14 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
 .note.ok{border-left-color:var(--ok)}
 
 .empty{color:var(--faint);font-size:.85rem;padding:1rem 0}
+
+/* preview */
+#previewWrap{background:var(--bg2);border:1px solid var(--line-soft);border-radius:10px;
+             padding:1rem;display:flex;justify-content:center;min-height:200px}
+#previewFrame{width:100%;height:72vh;border:0;border-radius:6px;background:#000;display:block}
+#previewWrap.phone #previewFrame{width:390px;max-width:100%;height:80vh;border:1px solid var(--line);border-radius:14px}
+.preview-bar{display:flex;gap:.7rem;align-items:flex-end;flex-wrap:wrap}
+.preview-bar > label.f{margin-bottom:0;flex:0 0 180px}
 code{font-family:var(--mono);font-size:.85em;background:var(--surface2);padding:.1em .35em;border-radius:4px}
 ol.steps{margin:0 0 1rem 1.1rem;padding:0;font-size:.86rem;color:var(--dim)}
 ol.steps li{margin-bottom:.45rem}
@@ -235,6 +243,7 @@ ol.steps b{color:var(--text)}
     <div class="tabs" role="tablist">
       <button class="tab" role="tab" aria-selected="true"  data-panel="photos">Photos</button>
       <button class="tab" role="tab" aria-selected="false" data-panel="home">Homepage</button>
+      <button class="tab" role="tab" aria-selected="false" data-panel="preview">Preview</button>
     </div>
 
     <section class="panel" id="panel-photos" role="tabpanel">
@@ -286,6 +295,33 @@ ol.steps b{color:var(--text)}
           <button class="btn btn--sm" id="marqueeAdd" style="flex:0 0 auto">Add</button>
         </div>
       </div>
+    </section>
+
+    <!-- ===================== PREVIEW ===================== -->
+    <section class="panel" id="panel-preview" role="tabpanel" hidden>
+      <div class="card">
+        <div class="preview-bar">
+          <label class="f"><span>Page</span>
+            <select id="previewPage">
+              <option value="index.html">Home</option>
+              <option value="festivals.html">Festivals</option>
+              <option value="work.html">Other Work</option>
+              <option value="about.html">About</option>
+            </select></label>
+          <div class="modes" id="previewWidth" role="group" aria-label="Preview width">
+            <button data-w="desktop" aria-pressed="true">Desktop</button>
+            <button data-w="phone" aria-pressed="false">Phone</button>
+          </div>
+          <button class="btn" id="previewRefresh">Refresh</button>
+        </div>
+        <p class="hint" style="margin:.8rem 0 0">
+          The real site, rendered with your unpublished changes — photos you've
+          just dropped in show up here before anyone else can see them. Use the
+          Page menu to move around rather than clicking links inside, since
+          links lead to the published pages.
+        </p>
+      </div>
+      <div id="previewWrap"><iframe id="previewFrame" title="Site preview"></iframe></div>
     </section>
   </div>
 </div>
@@ -810,6 +846,74 @@ function renderMarquee() {
   });
 }
 
+/* =============================== PREVIEW =================================
+   Renders the actual site — its real HTML, CSS and JavaScript — with the
+   draft content injected in place of the committed photos.js, so what you
+   see is what publishing would produce.
+
+   Images that aren't on the server yet (just dropped in, or local-only) are
+   swapped for in-memory blob URLs, which is why they appear at all.
+   ========================================================================= */
+
+const pageShells = new Map();   // filename -> raw HTML, fetched once each
+
+/* Relative asset paths inside the preview must resolve to the site root,
+   not to /tools/. Works from https and from a local file alike. */
+const SITE_BASE = new URL("../", location.href).href;
+
+/* JSON destined for an inline script tag: a closing tag sequence inside any
+   caption would otherwise end the block early, so escape every "<". */
+function safeJSON(v) {
+  return JSON.stringify(v).replace(/</g, "\\u003c");
+}
+
+function draftDataScript() {
+  const swap = src => thumbCache.get(src) || src;
+  const hero = { ...data.hero, src: swap(data.hero.src) };
+  const photos = data.photos.map(p => {
+    const c = { ...p, src: swap(p.src) };
+    delete c._new;
+    return c;
+  });
+  return "window.HERO=" + safeJSON(hero) + ";" +
+         "window.PHOTOS=" + safeJSON(photos) + ";" +
+         "window.MARQUEE=" + safeJSON(data.marquee) + ";";
+}
+
+async function getShell(page) {
+  if (pageShells.has(page)) return pageShells.get(page);
+  const html = await backend.loadText(page);
+  pageShells.set(page, html);
+  return html;
+}
+
+async function renderPreview() {
+  if (!backend) return;
+  const page = $("#previewPage").value;
+  const frame = $("#previewFrame");
+  try {
+    let html = await getShell(page);
+
+    // Replace the committed data file with the draft.
+    const tag = /<script[^>]*src=["'][^"']*photos\.js["'][^>]*>\s*<\/script>/i;
+    const inject = "<script>" + draftDataScript() + "<\/script>";
+    // Function replacements: a "$&" or "$'" inside a caption would otherwise
+    // be treated as a substitution pattern and mangle the data.
+    html = tag.test(html) ? html.replace(tag, () => inject)
+                          : html.replace(/<\/body>/i, () => inject + "</body>");
+
+    // Point relative URLs at the site root.
+    const baseTag = '<base href="' + SITE_BASE + '">';
+    html = /<head[^>]*>/i.test(html)
+      ? html.replace(/<head([^>]*)>/i, (m, attrs) => "<head" + attrs + ">" + baseTag)
+      : baseTag + html;
+
+    frame.srcdoc = html;
+  } catch (err) {
+    toast("Couldn't build preview: " + err.message, "bad");
+  }
+}
+
 /* ============================== CONNECTION =============================== */
 
 async function afterConnect() {
@@ -1014,6 +1118,15 @@ function wireDrop(zone, onFiles) {
   $$(".tab").forEach(tab => tab.addEventListener("click", () => {
     $$(".tab").forEach(t => t.setAttribute("aria-selected", String(t === tab)));
     $$(".panel").forEach(p => { p.hidden = p.id !== "panel-" + tab.dataset.panel; });
+    // Always rebuild on open so the preview can never show stale content.
+    if (tab.dataset.panel === "preview") renderPreview();
+  }));
+
+  $("#previewPage").addEventListener("change", renderPreview);
+  $("#previewRefresh").addEventListener("click", renderPreview);
+  $$("#previewWidth button").forEach(b => b.addEventListener("click", () => {
+    $$("#previewWidth button").forEach(o => o.setAttribute("aria-pressed", String(o === b)));
+    $("#previewWrap").classList.toggle("phone", b.dataset.w === "phone");
   }));
 
   const syncEvt = () => { $("#addEventWrap").style.visibility = $("#addCategory").value === "festivals" ? "visible" : "hidden"; };
