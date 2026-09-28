@@ -54,6 +54,9 @@
   --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
 
   --nav-h:       72px;
+
+  /* Largest a photo gets in the fullscreen viewer. */
+  --lb-max:      1040px;
 }
 
 /* ------------------------------------------------------- 2. RESET & BASE */
@@ -337,10 +340,12 @@ h1, h2, h3, h4, .display {
 .nav__links a:not(.btn):hover::after { transform: scaleX(1); transform-origin: left; }
 
 /* Current page */
+body[data-page="home"]      [data-nav="home"],
 body[data-page="festivals"] [data-nav="festivals"],
 body[data-page="work"]      [data-nav="work"],
 body[data-page="about"]     [data-nav="about"] { color: var(--text); }
 
+body[data-page="home"]      [data-nav="home"]::after,
 body[data-page="festivals"] [data-nav="festivals"]::after,
 body[data-page="work"]      [data-nav="work"]::after,
 body[data-page="about"]     [data-nav="about"]::after { transform: scaleX(1); }
@@ -371,15 +376,39 @@ body.menu-open .nav__toggle span:nth-child(3) { transform: translateY(-6.5px) ro
 @media (max-width: 800px) {
   .nav__toggle { display: block; }
 
+  /* backdrop-filter makes an element a containing block for its
+     fixed-position descendants, so while the nav is blurred this panel's
+     inset:0 resolves against the 72px header instead of the viewport - the
+     menu gets crammed into the bar and spills out of it, unscrollable.
+     Opening the menu locks body scrolling, which snaps the page to the top
+     and removes .is-stuck - but the blur is mid-transition for another
+     450ms, and a transitioning filter traps fixed children just as firmly
+     as a settled one. So this keys on the menu being open, never on the
+     stuck class, and kills the transition so the blur is gone in the same
+     frame the panel is laid out. */
+  body.menu-open .nav {
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    transition: none;
+    border-bottom-color: transparent;
+  }
+
   .nav__links {
     position: fixed;
     inset: 0;
     flex-direction: column;
     align-items: flex-start;
-    justify-content: center;
+    /* Top-aligned, not centred. Centred flex content that outgrows its box
+       overflows past the top edge and cannot be scrolled back to, which on a
+       short phone is exactly where the links ended up. */
+    justify-content: flex-start;
     gap: 0.5rem;
-    padding: 0 var(--gutter);
+    padding: calc(var(--nav-h) + 2rem) var(--gutter) 3rem;
     background: var(--bg);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.4s var(--ease), visibility 0.4s;
@@ -405,12 +434,13 @@ body.menu-open .nav__toggle span:nth-child(3) { transform: translateY(-6.5px) ro
   body.menu-open .nav__links a:nth-child(1) { transition-delay: 0.08s; }
   body.menu-open .nav__links a:nth-child(2) { transition-delay: 0.14s; }
   body.menu-open .nav__links a:nth-child(3) { transition-delay: 0.20s; }
+  body.menu-open .nav__links a:nth-child(4) { transition-delay: 0.26s; }
 
   .nav__links .btn {
     margin-top: 2rem;
     opacity: 0;
     transform: translateY(18px);
-    transition: opacity 0.5s var(--ease) 0.26s, transform 0.5s var(--ease) 0.26s;
+    transition: opacity 0.5s var(--ease) 0.32s, transform 0.5s var(--ease) 0.32s;
   }
   body.menu-open .nav__links .btn { opacity: 1; transform: none; }
 }
@@ -661,8 +691,13 @@ body.menu-open .nav__toggle span:nth-child(3) { transform: translateY(-6.5px) ro
   pointer-events: none;
 }
 
+/* Nothing written for this photo, so nothing is drawn over it - not even the
+   darkening gradient, which exists only to make caption text readable. */
+.tile--bare .tile__btn::after { content: none; }
+
 @media (hover: hover) {
   .tile__btn { transition: transform 0.55s var(--ease); }
+
   .tile__btn:hover { transform: translateY(-5px); }
   .tile__btn:hover img { transform: scale(1.055); }
   .tile__btn:hover::after { opacity: 1; }
@@ -1121,12 +1156,18 @@ img.is-missing  { display: none; }
   position: relative;
   display: grid;
   place-items: center;
-  padding-inline: var(--gutter);
+  padding: clamp(0.5rem, 2vh, 1.75rem) var(--gutter);
   min-height: 0;
 }
 
+/* Capped rather than filling the screen: a photo reads better with some dark
+   around it, and the caption underneath stays in view. Raise --lb-max if you
+   want them bigger. */
 .lb__img {
-  max-width: 100%;
+  max-width: min(100%, var(--lb-max));
+  /* 100% here is the viewer's middle row, already sized around the bar and
+     caption, so no vh arithmetic that a collapsing phone toolbar can break.
+     Vertical breathing room comes from the stage padding above. */
   max-height: 100%;
   width: auto;
   height: auto;

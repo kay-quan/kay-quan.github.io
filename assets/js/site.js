@@ -384,26 +384,38 @@
 
   function tileHTML(photo, i) {
     var ratio = (photo.w || 3) + " / " + (photo.h || 2);
-    var label = photo.title || "Photograph";
+    var title = photo.title || "";
     var meta = photo.event || "";
 
+    /* No invented captions. If nothing was written for a photo, nothing is
+       drawn over it -- no title, no event, no number, and no darkening
+       gradient, since there would be nothing for it to make readable. */
+    var hasCap = !!(title || meta);
+
+    /* alt still needs to say something for screen readers and for when an
+       image fails to load, but it is never shown as a caption. */
+    var alt = title || meta || labelFor(photo.category) || "";
+
     return (
-      '<article class="tile" data-reveal style="--i:' + (i % 8) + '">' +
+      '<article class="tile' + (hasCap ? "" : " tile--bare") + '" data-reveal style="--i:' + (i % 8) + '">' +
         '<button class="tile__btn" type="button" data-index="' + i + '" ' +
-                'aria-label="Open ' + esc(label) + ' full screen">' +
+                'aria-label="' + esc(alt ? "Open " + alt + " full screen"
+                                           : "Open photo " + (i + 1) + " full screen") + '">' +
           '<span class="tile__media" style="aspect-ratio:' + ratio + '">' +
             placeholderHTML(photo.src) +
-            '<img src="' + esc(photo.src) + '" alt="' + esc(label) + '" ' +
+            '<img src="' + esc(photo.src) + '" alt="' + esc(alt) + '" ' +
                  'loading="lazy" decoding="async" ' +
                  'width="' + (photo.w || 3000) + '" height="' + (photo.h || 2000) + '">' +
           "</span>" +
-          '<span class="tile__cap">' +
-            '<span class="tile__cap-text">' +
-              '<span class="tile__title">' + esc(label) + "</span>" +
-              (meta ? '<span class="tile__meta">' + esc(meta) + "</span>" : "") +
-            "</span>" +
-            '<span class="index-num">' + pad(i + 1) + "</span>" +
-          "</span>" +
+          (hasCap
+            ? '<span class="tile__cap">' +
+                '<span class="tile__cap-text">' +
+                  (title ? '<span class="tile__title">' + esc(title) + "</span>" : "") +
+                  (meta  ? '<span class="tile__meta">'  + esc(meta)  + "</span>" : "") +
+                "</span>" +
+                '<span class="index-num">' + pad(i + 1) + "</span>" +
+              "</span>"
+            : "") +
         "</button>" +
       "</article>"
     );

@@ -806,7 +806,8 @@ async function addPhotos(files, category, evt, maxEdge) {
   }
   if (added) { markDirty(); renderPhotos(); }
   toast(added + " photo" + (added === 1 ? "" : "s") + " added" +
-        (failed ? ", " + failed + " skipped" : "") + ". Add captions, then " +
+        (failed ? ", " + failed + " skipped" : "") + ". Captions are optional - leave them blank and nothing shows over the photo. " +
+        "Then " +
         (mode === "remote" ? "Publish." : "Save."), failed ? "bad" : "ok");
 }
 
@@ -1088,7 +1089,7 @@ function renderPhotos() {
       const fields = document.createElement("div");
       fields.className = "fields";
       fields.innerHTML =
-        '<input type="text" data-k="title" placeholder="Caption — e.g. Main stage, last song">' +
+        '<input type="text" data-k="title" placeholder="Caption (optional)">' +
         '<div class="row">' +
           '<input type="text" data-k="event" placeholder="Event (festivals only)">' +
           '<select data-k="category">' + CATEGORIES.map(c => '<option value="'+c+'">'+c+'</option>').join("") + '</select>' +
