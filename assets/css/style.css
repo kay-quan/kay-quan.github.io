@@ -56,7 +56,7 @@
   --nav-h:       72px;
 
   /* Largest a photo gets in the fullscreen viewer. */
-  --lb-max:      1040px;
+  --lb-max:      1600px;
 }
 
 /* ------------------------------------------------------- 2. RESET & BASE */
@@ -1108,8 +1108,15 @@ img.is-missing  { display: none; }
   inset: 0;
   z-index: 200;
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  /* minmax(0, 1fr), never a bare 1fr. A bare 1fr means minmax(auto, 1fr),
+     and that auto minimum refuses to shrink below the image's intrinsic
+     height - so the row grew to the full size of the photo, pushed the grid
+     past the viewport, and cut the bottom of the picture and the caption
+     off the screen. The zero minimum lets the row be as short as the window
+     allows and makes max-height on the image mean something. */
+  grid-template-rows: auto minmax(0, 1fr) auto;
   background: rgba(6, 6, 8, 0.97);
+
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   opacity: 0;
@@ -1155,8 +1162,14 @@ img.is-missing  { display: none; }
 .lb__stage {
   position: relative;
   display: grid;
+  /* An explicit bounded row, because the implicit one grid would create is
+     auto-sized: it grows to the photo's full height, and every percentage
+     inside then resolves against that grown row rather than this box. That
+     is why max-height on the image did nothing and tall photos ran off the
+     bottom of the window. */
+  grid-template-rows: minmax(0, 1fr);
   place-items: center;
-  padding: clamp(0.5rem, 2vh, 1.75rem) var(--gutter);
+  padding: clamp(0.75rem, 3vh, 2.5rem) var(--gutter);
   min-height: 0;
 }
 
@@ -1164,7 +1177,7 @@ img.is-missing  { display: none; }
    around it, and the caption underneath stays in view. Raise --lb-max if you
    want them bigger. */
 .lb__img {
-  max-width: min(100%, var(--lb-max));
+  max-width: min(92%, var(--lb-max));
   /* 100% here is the viewer's middle row, already sized around the bar and
      caption, so no vh arithmetic that a collapsing phone toolbar can break.
      Vertical breathing room comes from the stage padding above. */
