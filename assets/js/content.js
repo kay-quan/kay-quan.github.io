@@ -12,7 +12,7 @@ window.TEXT = {
 
   /* --- Contact & everywhere --- */
   email: "reachkevinquan@gmail.com",
-  instagramUrl: "https://instagram.com/",
+  instagramUrl: "https://instagram.com/kay_quan/",
   instagramHandle: "@kay_quan",
   tagline: "Festival & live music photography",
   footerNote: "All photographs are my own work.",
